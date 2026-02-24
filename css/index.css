@@ -1,0 +1,257 @@
+
+  body {
+    margin: 0;
+    font-family: "Comic Sans MS", Arial;
+    background: #0a0f1d;
+    color: white;
+    overflow: hidden;
+    display: flex;
+    height: 100vh;
+  }
+
+  /* BOTÓN FLOTANTE PARA MOSTRAR PANEL */
+  #showPanelBtn {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    background: #00aaff;
+    color: white;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    z-index: 200;
+    display: none;
+  }
+
+  /* PANEL LATERAL */
+  #leftColumn {
+    width: 260px;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.4s ease;
+    background: rgba(0,0,0,0.45);
+    z-index: 150;
+  }
+
+  /* OCULTAR PANEL (DEJA DE OCUPAR ESPACIO) */
+  #leftColumn.hidden {
+    position: absolute;
+    left: -260px;
+    top: 0;
+    height: 100vh;
+  }
+
+  #hidePanelBtn {
+    width: 100%;
+    background: #ff4444;
+    border: none;
+    color: white;
+    font-size: 1.1rem;
+    padding: 6px;
+    cursor: pointer;
+    border-radius: 6px;
+    margin-bottom: 6px;
+  }
+
+  /* PANEL DE SÍLABAS */
+  #syllablePanel {
+    padding: 10px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    height: 300px;
+    max-height: 60vh;
+  }
+
+  .letterGroup {
+    margin-bottom: 8px;
+  }
+
+  .letterGroup label {
+    font-size: 1.1rem;
+    cursor: pointer;
+  }
+
+  .sectionTitle {
+    margin-top: 10px;
+    margin-bottom: 5px;
+    font-weight: bold;
+    border-bottom: 1px solid #00aaff;
+    padding-bottom: 3px;
+  }
+
+  /* PANEL DE ROPA */
+  #inventoryPanel {
+    padding: 10px;
+    box-sizing: border-box;
+    height: 40vh;
+    overflow-y: auto;
+  }
+
+  .item {
+    background: rgba(255,255,255,0.1);
+    padding: 8px;
+    margin-top: 8px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    opacity: 0.3;
+    transition: 0.3s;
+  }
+
+  .item.unlocked {
+    opacity: 1;
+    background: rgba(0,255,100,0.2);
+    border: 1px solid #00ff88;
+  }
+
+  .item img {
+    width: 28px;
+    height: 28px;
+  }
+
+  /* ÁREA DEL JUEGO */
+  #gameArea {
+  flex: 1;
+  text-align: center;
+  padding-top: 5px; /* antes 20px */
+  position: relative;
+  overflow: hidden;
+  transition: width 0.4s ease;
+}
+
+
+  /* EXPANDIR JUEGO AL OCULTAR PANEL */
+  #gameArea.fullscreen {
+    width: 100vw;
+    margin-left: 0;
+  }
+
+ 
+
+
+  
+
+  .listen-btn {
+    padding: 12px 25px;
+    background: #00aaff;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    border: none;
+    color: white;
+    font-weight: bold;
+  }
+
+  /* PUERTAS */
+  .doors {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+    margin-top: 30px;
+    flex-wrap: wrap;
+  }
+
+  .door {
+    width: 150px;
+    height: 230px;
+    background: #3b3b3b;
+    border: 4px solid #777;
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    overflow: hidden;
+    transition: 0.5s;
+  }
+
+  .door.open {
+    transform: scaleY(0.1);
+  }
+
+  .door img {
+    width: 100%;
+    height: 70%;
+    object-fit: cover;
+  }
+
+  .syllable {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #ffdd55;
+    margin-bottom: 10px;
+  }
+
+  /* CAPA OSCURA */
+  #darkLayer {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    z-index: 5;
+    display: none;
+    pointer-events: none;
+  }
+
+  /* GLOBOS */
+  .balloon {
+    position: fixed;
+    font-size: 50px;
+    animation: floatUp 8s linear forwards;
+    pointer-events: auto;
+    z-index: 50;
+    cursor: pointer;
+  }
+
+  @keyframes floatUp {
+    0% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(-150vh); opacity: 0; }
+  }
+
+  @keyframes popBalloon {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(0); opacity: 0; }
+  }
+
+  .balloon.pop {
+    animation: popBalloon 0.25s ease-out forwards !important;
+  }
+
+  /* PREMIO */
+  #rewardImage {
+    position: fixed;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.1);
+    width: 220px;
+    opacity: 0;
+    transition: 0.6s ease;
+    z-index: 100;
+    pointer-events: none;
+  }
+
+  #rewardImage.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  /* 📱 AJUSTE AUTOMÁTICO EN VERTICAL */
+  @media (orientation: portrait) {
+    #ninja { width: 180px; }
+    .door { width: 130px; height: 200px; }
+    .syllable { font-size: 1.7rem; }
+    .doors { gap: 18px; }
+    #rewardImage { width: 180px; }
+  }
+
+  /* 📺 AJUSTE AUTOMÁTICO EN HORIZONTAL */
+  @media (orientation: landscape) {
+    #ninja { width: 140px; }
+    .door { width: 110px; height: 170px; }
+    .syllable { font-size: 1.4rem; }
+    .doors { gap: 12px; }
+    #rewardImage { width: 150px; }
+  }
