@@ -233,17 +233,19 @@ function checkDoor(syl, door) {
     door.classList.add("open");
 
     // Aumentar progreso
-    progress += 50;
+    progress += 20;
     if (progress > 100) progress = 100;
     document.getElementById("progressBar").style.width = progress + "%";
 
     // Si llega al 100%, premio
     if (progress === 100) {
       showReward();
+      launchBalloons();
       progress = 0;
       setTimeout(() => {
         document.getElementById("progressBar").style.width = "0%";
       }, 600);
+      score = score+1;
     }
 
     // Esperar a que termine la animación antes de permitir clics
