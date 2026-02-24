@@ -4,6 +4,9 @@ const leftColumn = document.getElementById("leftColumn");
 const showPanelBtn = document.getElementById("showPanelBtn");
 const hidePanelBtn = document.getElementById("hidePanelBtn");
 
+let progress = 0; // porcentaje actual
+
+
 hidePanelBtn.onclick = () => {
   leftColumn.classList.add("hidden");
   showPanelBtn.style.display = "block";
@@ -83,7 +86,7 @@ doorCountSelect.onchange = () => {
 
 /* JUEGO */
 let correctSyllable = "";
-let score = 0;
+let score = 1;
 
 const rewards = ["premio1.png","premio2.png","premio3.png","premio4.png","premio5.png"];
 const ninjaParts = ["ninja1.png","ninja2.png","ninja3.png","ninja4.png","ninja5.png"];
@@ -218,18 +221,34 @@ function checkDoor(syl,door){
     play("sndCorrect");
     play("sndDoor");
 
-    door.classList.add("open");
 
-    score++;
-    if(score <= 5){
-      unlockItem();
+    // Aumentar progreso
+    progress += 50;
+
+    if (progress > 100) progress = 100;
+
+    // Actualizar barra
+    document.getElementById("progressBar").style.width = progress + "%";
+
+    // Si llega al 100%, dar premio
+    if (progress === 100) {
+        showReward();
+        launchBalloons();
+        score++;
+        unlockItem();
+
+        play("sndBalloons");
+
+        progress = 0; // reiniciar
+        setTimeout(() => {
+            document.getElementById("progressBar").style.width = "0%";
+        }, 600); 
     }
 
-    showReward();
-    launchBalloons();
-    play("sndBalloons");
 
-    setTimeout(newRound,7000);
+    door.classList.add("open");
+
+    setTimeout(newRound,1000);
   } else {
     play("sndWrong");
     door.style.filter = "drop-shadow(0 0 10px red)";

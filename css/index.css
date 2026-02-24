@@ -193,7 +193,7 @@
     background: rgba(0,0,0,0.65);
     z-index: 5;
     display: none;
-    pointer-events: none;
+    pointer-events: auto; /* ahora SÍ bloquea clics */
   }
 
   /* GLOBOS */
@@ -255,3 +255,10 @@
     .doors { gap: 12px; }
     #rewardImage { width: 150px; }
   }
+
+
+
+  
+  
+  #progressContainer { width: 80%; height: 25px; background: rgba(255,255,255,0.2); border-radius: 12px; margin: 15px auto; overflow: hidden; border: 2px solid #00aaff; } 
+  #progressBar { height: 100%; width: 0%; background: linear-gradient(90deg, #00ff88, #00aaff); transition: width 0.4s ease;  } 
