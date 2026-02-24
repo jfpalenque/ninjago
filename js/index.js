@@ -157,6 +157,8 @@ function animateRewardToSidebar(){
     clone.style.opacity = "0.2";
   },50);
 
+  unlockItem();
+
   setTimeout(()=>clone.remove(),1500);
 }
 
@@ -231,7 +233,7 @@ function checkDoor(syl, door) {
     door.classList.add("open");
 
     // Aumentar progreso
-    progress += 20;
+    progress += 50;
     if (progress > 100) progress = 100;
     document.getElementById("progressBar").style.width = progress + "%";
 
