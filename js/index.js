@@ -5,7 +5,7 @@ const showPanelBtn = document.getElementById("showPanelBtn");
 const hidePanelBtn = document.getElementById("hidePanelBtn");
 
 let progress = 0; // porcentaje actual
-
+let clickLocked = false;
 
 hidePanelBtn.onclick = () => {
   leftColumn.classList.add("hidden");
@@ -216,46 +216,53 @@ function newRound(){
   speakSyllable();
 }
 
-function checkDoor(syl,door){
-  if(syl === correctSyllable){
+function checkDoor(syl, door) {
+
+  // ⛔ Si ya hay un clic en proceso, ignorar
+  if (clickLocked) return;
+
+  // 🔒 Bloquear nuevos clics
+  clickLocked = true;
+
+  if (syl === correctSyllable) {
+
     play("sndCorrect");
     play("sndDoor");
-
-
-    // Aumentar progreso
-    progress += 50;
-
-    if (progress > 100) progress = 100;
-
-    // Actualizar barra
-    document.getElementById("progressBar").style.width = progress + "%";
-
-    // Si llega al 100%, dar premio
-    if (progress === 100) {
-        showReward();
-        launchBalloons();
-        score++;
-        unlockItem();
-
-        play("sndBalloons");
-
-        progress = 0; // reiniciar
-        setTimeout(() => {
-            document.getElementById("progressBar").style.width = "0%";
-        }, 600); 
-    }
-
-
     door.classList.add("open");
 
-    setTimeout(newRound,1000);
+    // Aumentar progreso
+    progress += 20;
+    if (progress > 100) progress = 100;
+    document.getElementById("progressBar").style.width = progress + "%";
+
+    // Si llega al 100%, premio
+    if (progress === 100) {
+      showReward();
+      progress = 0;
+      setTimeout(() => {
+        document.getElementById("progressBar").style.width = "0%";
+      }, 600);
+    }
+
+    // Esperar a que termine la animación antes de permitir clics
+    setTimeout(() => {
+      newRound();
+      clickLocked = false; // 🔓 Desbloquear
+    }, 1500);
+
   } else {
+
     play("sndWrong");
     door.style.filter = "drop-shadow(0 0 10px red)";
-    speak("Has dicho "+syl);
-    setTimeout(()=>door.style.filter="none",600);
+    speak("Has dicho " + syl);
+
+    setTimeout(() => {
+      door.style.filter = "none";
+      clickLocked = false; // 🔓 Desbloquear tras error
+    }, 600);
   }
 }
+
 
 function launchBalloons(){
   const emojis = ["🎈","🎉","🎊"];
