@@ -122,13 +122,14 @@
 
   /* ÁREA DEL JUEGO */
   #gameArea {
-    flex: 1;
-    text-align: center;
-    padding-top: 20px;
-    position: relative;
-    overflow: hidden;
-    transition: width 0.4s ease;
-  }
+  flex: 1;
+  text-align: center;
+  padding-top: 5px; /* antes 20px */
+  position: relative;
+  overflow: hidden;
+  transition: width 0.4s ease;
+}
+
 
   /* EXPANDIR JUEGO AL OCULTAR PANEL */
   #gameArea.fullscreen {
@@ -136,28 +137,10 @@
     margin-left: 0;
   }
 
-  #ninja {
-    width: 200px;
-    filter: drop-shadow(0 0 12px #00eaff);
-    transition: 0.4s;
-  }
+ 
 
-  /* ANIMACIONES DEL NINJA */
-  @keyframes ninjaJump {
-    0% { transform: translateY(0); }
-    40% { transform: translateY(-80px); }
-    100% { transform: translateY(0); }
-  }
 
-  @keyframes ninjaGlow {
-    0% { filter: drop-shadow(0 0 10px #00eaff); }
-    50% { filter: drop-shadow(0 0 25px #00ff88); }
-    100% { filter: drop-shadow(0 0 10px #00eaff); }
-  }
-
-  .ninja-animate {
-    animation: ninjaJump 0.8s ease, ninjaGlow 1s ease;
-  }
+  
 
   .listen-btn {
     padding: 12px 25px;
@@ -317,7 +300,6 @@
 <div id="gameArea">
   <div id="darkLayer"></div>
 
-  <img id="ninja" src="ninja1.png">
 
   <button class="listen-btn" onclick="speakSyllable()">🔊 Escuchar sílaba</button>
 
@@ -460,12 +442,7 @@ function unlockItem(){
     item.insertBefore(img, item.firstChild);
   }
 
-  if (ninjaParts[score-1]) {
-    const ninja = document.getElementById("ninja");
-    ninja.src = ninjaParts[score-1];
-    ninja.classList.add("ninja-animate");
-    setTimeout(()=>ninja.classList.remove("ninja-animate"),1000);
-  }
+
 }
 
 function animateRewardToSidebar(){
