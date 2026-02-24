@@ -1,4 +1,4 @@
-const CACHE = "dojo-ninja-v1";
+const CACHE = "dojo-ninja-v3";
 
 self.addEventListener("install", e=>{
   e.waitUntil(
@@ -7,6 +7,8 @@ self.addEventListener("install", e=>{
         "./",
         "index.html",
         "manifest.json",
+        "icon-192.png",
+        "icon-512.png",
         "ninja1.png",
         "ninja2.png",
         "ninja3.png",

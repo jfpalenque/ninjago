@@ -17,43 +17,59 @@
     height: 100vh;
   }
 
-  /* COLUMNA IZQUIERDA */
+  /* BOTÓN FLOTANTE PARA MOSTRAR PANEL */
+  #showPanelBtn {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    background: #00aaff;
+    color: white;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    z-index: 200;
+    display: none;
+  }
+
+  /* PANEL LATERAL */
   #leftColumn {
     width: 260px;
     display: flex;
     flex-direction: column;
-  }
-
-  /* PANEL DE SÍLABAS (solo este se contrae) */
-  #syllablePanel {
+    transition: transform 0.4s ease;
     background: rgba(0,0,0,0.45);
-    border-right: 3px solid #00aaff;
-    padding: 10px;
-    box-sizing: border-box;
-    transition: height 0.4s ease;
-    overflow: hidden;
-    height: 60vh;
+    z-index: 150;
   }
 
-  #syllablePanel.collapsed {
-    height: 60px;
+  /* OCULTAR PANEL (DEJA DE OCUPAR ESPACIO) */
+  #leftColumn.hidden {
+    position: absolute;
+    left: -260px;
+    top: 0;
+    height: 100vh;
   }
 
-  #togglePanel {
+  #hidePanelBtn {
     width: 100%;
-    background: #00aaff;
+    background: #ff4444;
     border: none;
     color: white;
-    font-size: 1.2rem;
-    padding: 8px;
+    font-size: 1.1rem;
+    padding: 6px;
     cursor: pointer;
     border-radius: 6px;
+    margin-bottom: 6px;
   }
 
-  #panelContent {
-    margin-top: 10px;
+  /* PANEL DE SÍLABAS */
+  #syllablePanel {
+    padding: 10px;
+    box-sizing: border-box;
     overflow-y: auto;
-    height: calc(100% - 60px);
+    height: 300px;
+    max-height: 60vh;
   }
 
   .letterGroup {
@@ -73,10 +89,8 @@
     padding-bottom: 3px;
   }
 
-  /* PANEL DE ROPA (NO se contrae) */
+  /* PANEL DE ROPA */
   #inventoryPanel {
-    background: rgba(0,0,0,0.45);
-    border-right: 3px solid #00ff88;
     padding: 10px;
     box-sizing: border-box;
     height: 40vh;
@@ -106,13 +120,20 @@
     height: 28px;
   }
 
-  /* ZONA DEL JUEGO */
+  /* ÁREA DEL JUEGO */
   #gameArea {
     flex: 1;
     text-align: center;
     padding-top: 20px;
     position: relative;
     overflow: hidden;
+    transition: width 0.4s ease;
+  }
+
+  /* EXPANDIR JUEGO AL OCULTAR PANEL */
+  #gameArea.fullscreen {
+    width: 100vw;
+    margin-left: 0;
   }
 
   #ninja {
@@ -149,11 +170,13 @@
     font-weight: bold;
   }
 
+  /* PUERTAS */
   .doors {
     display: flex;
     justify-content: center;
     gap: 25px;
     margin-top: 30px;
+    flex-wrap: wrap;
   }
 
   .door {
@@ -188,7 +211,7 @@
     margin-bottom: 10px;
   }
 
-  /* CAPA OSCURA SOLO SOBRE EL JUEGO */
+  /* CAPA OSCURA */
   #darkLayer {
     position: absolute;
     inset: 0;
@@ -213,7 +236,6 @@
     100% { transform: translateY(-150vh); opacity: 0; }
   }
 
-  /* EXPLOSIÓN */
   @keyframes popBalloon {
     0% { transform: scale(1); opacity: 1; }
     100% { transform: scale(0); opacity: 0; }
@@ -240,23 +262,48 @@
     opacity: 1;
     transform: translate(-50%, -50%) scale(1);
   }
+
+  /* 📱 AJUSTE AUTOMÁTICO EN VERTICAL */
+  @media (orientation: portrait) {
+    #ninja { width: 180px; }
+    .door { width: 130px; height: 200px; }
+    .syllable { font-size: 1.7rem; }
+    .doors { gap: 18px; }
+    #rewardImage { width: 180px; }
+  }
+
+  /* 📺 AJUSTE AUTOMÁTICO EN HORIZONTAL */
+  @media (orientation: landscape) {
+    #ninja { width: 140px; }
+    .door { width: 110px; height: 170px; }
+    .syllable { font-size: 1.4rem; }
+    .doors { gap: 12px; }
+    #rewardImage { width: 150px; }
+  }
+
 </style>
 </head>
 
 <body>
 
-<div id="leftColumn">
+<button id="showPanelBtn">☰</button>
 
-  <!-- PANEL DE SÍLABAS -->
+<div id="leftColumn">
+  <button id="hidePanelBtn">Ocultar panel</button>
+
   <div id="syllablePanel">
-    <button id="togglePanel">Sílabas ▾</button>
-    <div id="panelContent">
-      <div class="sectionTitle">Elegir sílabas</div>
-      <div id="lettersContainer"></div>
-    </div>
+    <div class="sectionTitle">Elegir sílabas</div>
+    <div id="lettersContainer"></div>
+
+    <div class="sectionTitle">Número de puertas</div>
+    <select id="doorCount" style="width:100%; padding:6px; border-radius:6px; font-size:1rem;">
+      <option value="2">2 puertas</option>
+      <option value="3">3 puertas</option>
+      <option value="4">4 puertas</option>
+      <option value="5" selected>5 puertas</option>
+    </select>
   </div>
 
-  <!-- PANEL DE ROPA -->
   <div id="inventoryPanel">
     <div class="sectionTitle">Ropa Ninja</div>
     <div id="item1" class="item"><span>Cinturón</span></div>
@@ -265,10 +312,8 @@
     <div id="item4" class="item"><span>Guantes</span></div>
     <div id="item5" class="item"><span>Espada</span></div>
   </div>
-
 </div>
 
-<!-- ZONA DEL JUEGO -->
 <div id="gameArea">
   <div id="darkLayer"></div>
 
@@ -279,10 +324,8 @@
   <div class="doors" id="doors"></div>
 </div>
 
-<!-- PREMIO -->
 <img id="rewardImage">
 
-<!-- SONIDOS -->
 <audio id="sndCorrect" src="correct.mp3"></audio>
 <audio id="sndWrong" src="wrong.mp3"></audio>
 <audio id="sndDoor" src="door.mp3"></audio>
@@ -291,10 +334,24 @@
 <audio id="sndPop" src="pop.mp3"></audio>
 
 <script>
-/* --------------------------
-   LETRAS Y SÍLABAS
---------------------------- */
+/* PANEL LATERAL */
+const leftColumn = document.getElementById("leftColumn");
+const showPanelBtn = document.getElementById("showPanelBtn");
+const hidePanelBtn = document.getElementById("hidePanelBtn");
 
+hidePanelBtn.onclick = () => {
+  leftColumn.classList.add("hidden");
+  showPanelBtn.style.display = "block";
+  document.getElementById("gameArea").classList.add("fullscreen");
+};
+
+showPanelBtn.onclick = () => {
+  leftColumn.classList.remove("hidden");
+  showPanelBtn.style.display = "none";
+  document.getElementById("gameArea").classList.remove("fullscreen");
+};
+
+/* SÍLABAS */
 const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
 const syllableGroups = {};
@@ -350,10 +407,16 @@ function updateActiveSyllables() {
 
 updateActiveSyllables();
 
-/* --------------------------
-   LÓGICA DEL JUEGO
---------------------------- */
+/* SELECTOR DE PUERTAS */
+const doorCountSelect = document.getElementById("doorCount");
+doorCountSelect.value = localStorage.getItem("doorCount") || "5";
 
+doorCountSelect.onchange = () => {
+  localStorage.setItem("doorCount", doorCountSelect.value);
+  newRound();
+};
+
+/* JUEGO */
 let correctSyllable = "";
 let score = 0;
 
@@ -459,10 +522,12 @@ function newRound(){
   const doors = document.getElementById("doors");
   doors.innerHTML = "";
 
+  const numDoors = parseInt(localStorage.getItem("doorCount") || "5");
+
   correctSyllable = activeSyllables[Math.floor(Math.random()*activeSyllables.length)];
 
   const options = new Set([correctSyllable]);
-  while(options.size < 5){
+  while(options.size < numDoors){
     options.add(activeSyllables[Math.floor(Math.random()*activeSyllables.length)]);
   }
 
@@ -515,15 +580,31 @@ function checkDoor(syl,door){
 
 function launchBalloons(){
   const emojis = ["🎈","🎉","🎊"];
-  for(let i=0;i<50;i++){
+
+  // MENOS GLOBOS (antes 50)
+  const total = 25;
+
+  for(let i=0; i<total; i++){
     const b = document.createElement("div");
     b.className = "balloon";
-    b.textContent = emojis[Math.floor(Math.random()*emojis.length)];
-    b.style.left = Math.random()*100+"vw";
-    b.style.bottom = "-10vh";
-    b.style.fontSize = (40+Math.random()*40)+"px";
-    b.style.animationDelay = (Math.random()*1)+"s";
 
+    // EMOJI
+    b.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+
+    // MÁS ESPACIADOS (separación mínima entre globos)
+    b.style.left = (Math.random()*90 + 5) + "vw"; // evita que se agrupen en los bordes
+
+    // MÁS GRANDES (antes 40–80px)
+    b.style.fontSize = (60 + Math.random()*60) + "px";
+
+    // MÁS LENTOS Y SUAVES
+    b.style.bottom = "-15vh";
+    b.style.animationDuration = (8 + Math.random()*4) + "s";
+
+    // RETRASO ALEATORIO
+    b.style.animationDelay = (Math.random()*1.5) + "s";
+
+    // EXPLOSIÓN
     b.onclick = () => {
       b.classList.add("pop");
       play("sndPop");
@@ -532,20 +613,13 @@ function launchBalloons(){
 
     document.body.appendChild(b);
 
-    setTimeout(()=>b.remove(),9000);
+    // ELIMINAR AUTOMÁTICAMENTE
+    setTimeout(()=>b.remove(),12000);
   }
 }
 
+
 newRound();
-
-/* PANEL PLEGABLE */
-document.getElementById("togglePanel").onclick = ()=>{
-  const panel = document.getElementById("syllablePanel");
-  panel.classList.toggle("collapsed");
-
-  document.getElementById("togglePanel").textContent =
-    panel.classList.contains("collapsed") ? "Sílabas ▴" : "Sílabas ▾";
-};
 
 /* SERVICE WORKER */
 if ("serviceWorker" in navigator) {
