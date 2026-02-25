@@ -97,7 +97,7 @@ let correctSyllable = "";
 let score = 1;
 
 //const rewards = ["img/premios/premio1.png","img/premios/premio2.png","img/premios/premio3.png","img/premios/premio4.png","img/premios/premio5.png"];
-const rewards = Array.from({ length: 29 }, (_, i) => `img/premios/premio${i + 1}.png`);
+const rewards = Array.from({ length: 31 }, (_, i) => `img/premios/premio${i + 1}.png`);
 const ninjaParts = ["ninja1.png","ninja2.png","ninja3.png","ninja4.png","ninja5.png"];
 
 function play(id){
