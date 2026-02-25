@@ -230,7 +230,7 @@ function checkDoor(syl, door) {
   if (syl === correctSyllable) {
 
     play("sndCorrect");
-    play("sndDoor");
+    //play("sndDoor");
     door.classList.add("open");
 
     // Aumentar progreso
@@ -321,7 +321,7 @@ closeRewardsBtn.onclick = () => {
 
 /* SERVICE WORKER */
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js");
+  navigator.serviceWorker.register("js/sw.js");
 }
 
 
@@ -346,3 +346,23 @@ resetRewardsBtn.onclick = () => {
   localStorage.removeItem("unlockedRewards");
   rewardsList.innerHTML = "<p>No tienes premios.</p>";
 };
+async function loadAutoVersion() {
+  try {
+    //const response = await fetch("script.js", { method: "HEAD" });
+    //const response = await fetch("../index.html", { method: "HEAD" });
+    const response = await fetch("/ninjago/index.html", { method: "HEAD" });
+    
+    const lastModified = response.headers.get("Last-Modified");
+
+    if (lastModified) {
+      const version = new Date(lastModified).toLocaleString();
+      document.getElementById("versionBox").textContent = "Versión: " + version;
+    } else {
+      document.getElementById("versionBox").textContent = "Versión: desconocida";
+    }
+  } catch (e) {
+    document.getElementById("versionBox").textContent = "Versión: error";
+  }
+}
+
+loadAutoVersion();

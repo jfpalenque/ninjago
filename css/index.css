@@ -312,3 +312,12 @@
   font-size: 1rem;
 }
 
+
+.versionBox {
+  margin-top: 10px;
+  padding: 6px;
+  font-size: 0.9rem;
+  color: #ccc;
+  text-align: center;
+  opacity: 0.8;
+}
