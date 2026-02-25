@@ -4,8 +4,16 @@ const leftColumn = document.getElementById("leftColumn");
 const showPanelBtn = document.getElementById("showPanelBtn");
 const hidePanelBtn = document.getElementById("hidePanelBtn");
 
+const rewardsDialog = document.getElementById("rewardsDialog");
+const rewardsList = document.getElementById("rewardsList");
+const showRewardsBtn = document.getElementById("showRewardsBtn");
+const closeRewardsBtn = document.getElementById("closeRewardsBtn");
+const resetRewardsBtn = document.getElementById("resetRewardsBtn");
+
 let progress = 0; // porcentaje actual
 let clickLocked = false;
+
+let unlockedRewards = JSON.parse(localStorage.getItem("unlockedRewards") || "[]");
 
 hidePanelBtn.onclick = () => {
   leftColumn.classList.add("hidden");
@@ -88,7 +96,8 @@ doorCountSelect.onchange = () => {
 let correctSyllable = "";
 let score = 1;
 
-const rewards = ["premio1.png","premio2.png","premio3.png","premio4.png","premio5.png"];
+//const rewards = ["img/premios/premio1.png","img/premios/premio2.png","img/premios/premio3.png","img/premios/premio4.png","img/premios/premio5.png"];
+const rewards = Array.from({ length: 29 }, (_, i) => `img/premios/premio${i + 1}.png`);
 const ninjaParts = ["ninja1.png","ninja2.png","ninja3.png","ninja4.png","ninja5.png"];
 
 function play(id){
@@ -115,21 +124,28 @@ function darken(){
 function undarken(){
   document.getElementById("darkLayer").style.display = "none";
 }
+function unlockItem() {
 
-function unlockItem(){
-  const item = document.getElementById("item"+score);
-  if(!item) return;
+  let index = Math.floor(Math.random() * rewards.length);
+  let wonPrize = rewards[index];
 
-  item.classList.add("unlocked");
+  unlockedRewards.push(wonPrize);
+  localStorage.setItem("unlockedRewards", JSON.stringify(unlockedRewards));
 
-  if (!item.querySelector("img") && rewards[score-1]) {
-    const img = document.createElement("img");
-    img.src = 'img/' + rewards[score-1];
-    item.insertBefore(img, item.firstChild);
-  }
+  const reward = document.getElementById("rewardImage");
+  reward.src = wonPrize;
+  reward.classList.add("show");
 
+  play("sndPrize");
+  darken();
 
+  setTimeout(() => {
+    animateRewardToSidebar();
+    reward.classList.remove("show");
+    undarken();
+  }, 5000);
 }
+
 
 function animateRewardToSidebar(){
   const reward = document.getElementById("rewardImage");
@@ -157,31 +173,16 @@ function animateRewardToSidebar(){
     clone.style.opacity = "0.2";
   },50);
 
-  unlockItem();
+  // ❌ ESTA LÍNEA ERA EL PROBLEMA
+  // unlockItem();
 
   setTimeout(()=>clone.remove(),1500);
 }
 
-function showReward(){
-  const reward = document.getElementById("rewardImage");
-
-  let index = score-1;
-  if(index >= rewards.length){
-    index = Math.floor(Math.random()*rewards.length);
-  }
-
-  reward.src = 'img/' + rewards[index];
-  reward.classList.add("show");
-
-  play("sndPrize");
-  darken();
-
-  setTimeout(()=>{
-    animateRewardToSidebar();
-    reward.classList.remove("show");
-    undarken();
-  },5000);
+function showReward() {
+  unlockItem();
 }
+
 
 function newRound(){
   const doors = document.getElementById("doors");
@@ -233,7 +234,7 @@ function checkDoor(syl, door) {
     door.classList.add("open");
 
     // Aumentar progreso
-    progress += 20;
+    progress += 100;
     if (progress > 100) progress = 100;
     document.getElementById("progressBar").style.width = progress + "%";
 
@@ -311,7 +312,37 @@ function launchBalloons(){
 
 newRound();
 
+ 
+
+closeRewardsBtn.onclick = () => {
+  rewardsDialog.style.display = "none";
+};
+
+
 /* SERVICE WORKER */
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js");
 }
+
+
+showRewardsBtn.onclick = () => {
+  rewardsList.innerHTML = "";
+
+  if (unlockedRewards.length === 0) {
+    rewardsList.innerHTML = "<p>Aún no tienes premios.</p>";
+  } else {
+    unlockedRewards.forEach(src => {
+      const img = document.createElement("img");
+      img.src = src;
+      rewardsList.appendChild(img);
+    });
+  }
+
+  rewardsDialog.style.display = "flex";
+};
+
+resetRewardsBtn.onclick = () => {
+  unlockedRewards = [];
+  localStorage.removeItem("unlockedRewards");
+  rewardsList.innerHTML = "<p>No tienes premios.</p>";
+};

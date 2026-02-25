@@ -17,6 +17,8 @@
 <div id="leftColumn">
   <button id="hidePanelBtn">Ocultar panel</button>
 
+  <button id="showRewardsBtn">🎁 Ver premios</button>
+
   <div id="syllablePanel">
     <div class="sectionTitle">Elegir sílabas</div>
     <div id="lettersContainer"></div>
@@ -60,6 +62,17 @@
 <audio id="sndPrize" src="sound/prize.mp3"></audio>
 <audio id="sndBalloons" src="sound/balloons.mp3"></audio>
 <audio id="sndPop" src="sound/pop.mp3"></audio>
+
+
+<div id="rewardsDialog" class="dialog">
+  <div class="dialogContent">
+    <button id="resetRewardsBtn">Resetear premios</button>
+
+    <h2>Premios conseguidos</h2>
+    <div id="rewardsList"></div>
+    <button id="closeRewardsBtn">Cerrar</button>
+  </div>
+</div>
 
 
 <script src="js/index.js"  ></script>
