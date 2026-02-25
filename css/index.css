@@ -321,3 +321,10 @@
   text-align: center;
   opacity: 0.8;
 }
+.optionRow {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+}

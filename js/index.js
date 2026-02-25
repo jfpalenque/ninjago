@@ -10,10 +10,22 @@ const showRewardsBtn = document.getElementById("showRewardsBtn");
 const closeRewardsBtn = document.getElementById("closeRewardsBtn");
 const resetRewardsBtn = document.getElementById("resetRewardsBtn");
 
+const changeOnFailChk = document.getElementById("changeOnFail");
+
+// Cargar estado guardado
+changeOnFailChk.checked = JSON.parse(localStorage.getItem("changeOnFail") || "false");
+
 let progress = 0; // porcentaje actual
 let clickLocked = false;
 
 let unlockedRewards = JSON.parse(localStorage.getItem("unlockedRewards") || "[]");
+
+
+// Guardar cuando cambie
+changeOnFailChk.onchange = () => {
+  localStorage.setItem("changeOnFail", changeOnFailChk.checked);
+};
+
 
 hidePanelBtn.onclick = () => {
   leftColumn.classList.add("hidden");
@@ -234,26 +246,31 @@ function checkDoor(syl, door) {
     door.classList.add("open");
 
     // Aumentar progreso
-    progress += 20;
+    progress += 100;
     if (progress > 100) progress = 100;
     document.getElementById("progressBar").style.width = progress + "%";
 
     // Si llega al 100%, premio
     if (progress === 100) {
-      showReward();
-      launchBalloons();
-      progress = 0;
-      setTimeout(() => {
-        document.getElementById("progressBar").style.width = "0%";
-      }, 600);
-      score = score+1;
-    }
 
-    // Esperar a que termine la animación antes de permitir clics
-    setTimeout(() => {
-      newRound();
-      clickLocked = false; // 🔓 Desbloquear
-    }, 1500);
+      showReward();
+
+      launchBalloons().then(() => {
+        // 👉 Aquí empieza la siguiente ronda SOLO cuando los globos han terminado
+        progress = 0;
+        document.getElementById("progressBar").style.width = "0%";
+        score = score + 1;
+        newRound();
+        clickLocked = false;
+      });
+      return; // Evita que siga el flujo normal
+    }else{
+      // Esperar a que termine la animación antes de permitir clics
+      setTimeout(() => {
+        newRound();
+        clickLocked = false; // 🔓 Desbloquear
+      }, 1500);
+    }
 
   } else {
 
@@ -263,50 +280,61 @@ function checkDoor(syl, door) {
 
     setTimeout(() => {
       door.style.filter = "none";
+
+      // ✔ Si el checkbox está activado → nueva ronda al fallar
+      if (changeOnFailChk.checked) {
+        newRound();
+      }
+
       clickLocked = false; // 🔓 Desbloquear tras error
     }, 600);
   }
+
 }
 
 
-function launchBalloons(){
-  const emojis = ["🎈","🎉","🎊"];
+function launchBalloons() { 
+  return new Promise(resolve => {
+    const emojis = ["🎈","🎉","🎊"];
 
-  // MENOS GLOBOS (antes 50)
-  const total = 25;
+    // MENOS GLOBOS (antes 50)
+    const total = 15;
 
-  for(let i=0; i<total; i++){
-    const b = document.createElement("div");
-    b.className = "balloon";
+    for(let i=0; i<total; i++){
+      const b = document.createElement("div");
+      b.className = "balloon";
 
-    // EMOJI
-    b.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+      // EMOJI
+      b.textContent = emojis[Math.floor(Math.random()*emojis.length)];
 
-    // MÁS ESPACIADOS (separación mínima entre globos)
-    b.style.left = (Math.random()*90 + 5) + "vw"; // evita que se agrupen en los bordes
+      // MÁS ESPACIADOS (separación mínima entre globos)
+      b.style.left = (Math.random()*90 + 5) + "vw"; // evita que se agrupen en los bordes
 
-    // MÁS GRANDES (antes 40–80px)
-    b.style.fontSize = (60 + Math.random()*60) + "px";
+      // MÁS GRANDES (antes 40–80px)
+      b.style.fontSize = (80 + Math.random()*80) + "px";
 
-    // MÁS LENTOS Y SUAVES
-    b.style.bottom = "-15vh";
-    b.style.animationDuration = (8 + Math.random()*4) + "s";
+      // MÁS LENTOS Y SUAVES
+      b.style.bottom = "-15vh";
+      b.style.animationDuration = (4 + Math.random()*4) + "s";
 
-    // RETRASO ALEATORIO
-    b.style.animationDelay = (Math.random()*1.5) + "s";
+      // RETRASO ALEATORIO
+      b.style.animationDelay = (Math.random()*1.5) + "s";
 
-    // EXPLOSIÓN
-    b.onclick = () => {
-      b.classList.add("pop");
-      play("sndPop");
-      setTimeout(()=>b.remove(),250);
-    };
+      // EXPLOSIÓN
+      b.onclick = () => {
+        b.classList.add("pop");
+        play("sndPop");
+        setTimeout(()=>b.remove(),250);
+      };
 
-    document.body.appendChild(b);
+      document.body.appendChild(b);
 
-    // ELIMINAR AUTOMÁTICAMENTE
-    setTimeout(()=>b.remove(),6000);
-  }
+      // ELIMINAR AUTOMÁTICAMENTE
+      setTimeout(()=>b.remove(),6000);
+    }
+    // ⏳ Esperar a que todos los globos hayan terminado
+    setTimeout(resolve, 6000);
+  });
 }
 
 
