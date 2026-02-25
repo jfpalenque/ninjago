@@ -246,7 +246,7 @@ function checkDoor(syl, door) {
     door.classList.add("open");
 
     // Aumentar progreso
-    progress += 100;
+    progress += 20;
     if (progress > 100) progress = 100;
     document.getElementById("progressBar").style.width = progress + "%";
 
