@@ -21,6 +21,15 @@ let clickLocked = false;
 let unlockedRewards = JSON.parse(localStorage.getItem("unlockedRewards") || "[]");
 
 
+const sameVowelChk = document.getElementById("sameVowel");
+sameVowelChk.checked = JSON.parse(localStorage.getItem("sameVowel") || "false");
+
+sameVowelChk.onchange = () => {
+  localStorage.setItem("sameVowel", sameVowelChk.checked);
+};
+
+
+
 // Guardar cuando cambie
 changeOnFailChk.onchange = () => {
   localStorage.setItem("changeOnFail", changeOnFailChk.checked);
@@ -195,21 +204,55 @@ function showReward() {
   unlockItem();
 }
 
-
 function newRound(){
   const doors = document.getElementById("doors");
   doors.innerHTML = "";
 
   const numDoors = parseInt(localStorage.getItem("doorCount") || "5");
 
+  // Elegir sílaba correcta como siempre
   correctSyllable = activeSyllables[Math.floor(Math.random()*activeSyllables.length)];
 
-  const options = new Set([correctSyllable]);
-  while(options.size < numDoors){
-    options.add(activeSyllables[Math.floor(Math.random()*activeSyllables.length)]);
+  let options;
+
+  if (sameVowelChk.checked) {
+
+    // 1. Detectar vocal de la sílaba correcta
+    const match = correctSyllable.match(/[AEIOU]/);
+    const vowel = match ? match[0] : "A";
+
+    // 2. Filtrar sílabas que tengan esa vocal
+    const sameVowelList = activeSyllables.filter(s => s.includes(vowel));
+
+    // 3. Si no hay suficientes sílabas, fallback al modo normal
+    if (sameVowelList.length < numDoors) {
+      console.warn("No hay suficientes sílabas con la vocal", vowel);
+      options = new Set([correctSyllable]);
+      while(options.size < numDoors){
+        options.add(activeSyllables[Math.floor(Math.random()*activeSyllables.length)]);
+      }
+      options = [...options];
+    } else {
+      // 4. Generar opciones con esa vocal
+      options = new Set([correctSyllable]);
+      while(options.size < numDoors){
+        options.add(sameVowelList[Math.floor(Math.random()*sameVowelList.length)]);
+      }
+      options = [...options];
+    }
+
+  } else {
+
+    // Modo normal (tu código original)
+    options = new Set([correctSyllable]);
+    while(options.size < numDoors){
+      options.add(activeSyllables[Math.floor(Math.random()*activeSyllables.length)]);
+    }
+    options = [...options];
   }
 
-  [...options].sort(()=>Math.random()-0.5).forEach((syl,i)=>{
+  // Crear puertas
+  options.sort(()=>Math.random()-0.5).forEach((syl,i)=>{
     const d = document.createElement("div");
     d.className = "door";
 
@@ -230,6 +273,8 @@ function newRound(){
 
   speakSyllable();
 }
+
+
 
 function checkDoor(syl, door) {
 
