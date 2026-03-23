@@ -44,49 +44,39 @@
 
 
 
+</div>
 
+  <div id="gameArea">
+    <div id="darkLayer"></div>
 
-  <div id="inventoryPanel">
-    <div class="sectionTitle">Ropa Ninja</div>
-    <div id="item1" class="item"><span>Cinturón</span></div>
-    <div id="item2" class="item"><span>Máscara</span></div>
-    <div id="item3" class="item"><span>Pechera</span></div>
-    <div id="item4" class="item"><span>Guantes</span></div>
-    <div id="item5" class="item"><span>Espada</span></div>
+    <div id="progressContainer"> 
+      <div id="progressBar"></div> 
+    </div> 
+
+    <button class="listen-btn" onclick="speakSyllable()">🔊 Escuchar sílaba</button>
+
+    <div class="doors" id="doors"></div>
   </div>
-</div>
 
-<div id="gameArea">
-  <div id="darkLayer"></div>
+  <img id="rewardImage">
 
-  <div id="progressContainer"> 
-    <div id="progressBar"></div> 
-  </div> 
+  <audio id="sndCorrect" src="sound/correct.mp3"></audio>
+  <audio id="sndWrong" src="sound/wrong.mp3"></audio>
+  <!--<audio id="sndDoor" src="sound/door.mp3"></audio>-->
+  <audio id="sndPrize" src="sound/prize.mp3"></audio>
+  <audio id="sndBalloons" src="sound/balloons.mp3"></audio>
+  <audio id="sndPop" src="sound/pop.mp3"></audio>
 
-  <button class="listen-btn" onclick="speakSyllable()">🔊 Escuchar sílaba</button>
+  <div id="rewardsDialog" class="dialog">
+    <div class="dialogContent">
+      <button id="resetRewardsBtn">Resetear premios</button>
 
-  <div class="doors" id="doors"></div>
-</div>
+      <h2>Premios conseguidos</h2>
+      <div id="rewardsList"></div>
 
-<img id="rewardImage">
-
-<audio id="sndCorrect" src="sound/correct.mp3"></audio>
-<audio id="sndWrong" src="sound/wrong.mp3"></audio>
-<!--<audio id="sndDoor" src="sound/door.mp3"></audio>-->
-<audio id="sndPrize" src="sound/prize.mp3"></audio>
-<audio id="sndBalloons" src="sound/balloons.mp3"></audio>
-<audio id="sndPop" src="sound/pop.mp3"></audio>
-
-<div id="rewardsDialog" class="dialog">
-  <div class="dialogContent">
-    <button id="resetRewardsBtn">Resetear premios</button>
-
-    <h2>Premios conseguidos</h2>
-    <div id="rewardsList"></div>
-
-    <button id="closeRewardsBtn">Cerrar</button>
+      <button id="closeRewardsBtn">Cerrar</button>
   </div>
-</div>
+  </div>
 
 
 <script src="js/index.js"  ></script>
