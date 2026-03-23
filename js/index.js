@@ -479,10 +479,18 @@ showRewardsBtn.onclick = () => {
 
 
 resetRewardsBtn.onclick = () => {
-  unlockedRewards = [];
+  const ok = confirm("¿Seguro que quieres resetear todos los premios?");
+  if (!ok) return; // si cancela, no hace nada
+  unlockedRewards = {}; // ahora es un OBJETO, no un array
   localStorage.removeItem("unlockedRewards");
   rewardsList.innerHTML = "<p>No tienes premios.</p>";
 };
+
+document.getElementById("closeRewardsX").onclick = function () {
+  document.getElementById("rewardsDialog").style.display = "none";
+};
+
+
 async function loadAutoVersion() {
   try {
     //const response = await fetch("script.js", { method: "HEAD" });

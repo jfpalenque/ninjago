@@ -20,29 +20,29 @@
 
   <button id="showRewardsBtn">🎁 Ver premios</button>
 
+  <div>
+    <div class="sectionTitle">Número de puertas</div>
+      <select id="doorCount" style="width:100%; padding:6px; border-radius:6px; font-size:1rem;">
+        <option value="2">2 puertas</option>
+        <option value="3">3 puertas</option>
+        <option value="4">4 puertas</option>
+        <option value="5" selected>5 puertas</option>
+      </select>
+  </div>
+
   <div id="syllablePanel">
     <div class="sectionTitle">Elegir sílabas</div>
     <div id="lettersContainer"></div>
-
-    <div class="sectionTitle">Número de puertas</div>
-    <select id="doorCount" style="width:100%; padding:6px; border-radius:6px; font-size:1rem;">
-      <option value="2">2 puertas</option>
-      <option value="3">3 puertas</option>
-      <option value="4">4 puertas</option>
-      <option value="5" selected>5 puertas</option>
-    </select>
   </div>
 
   <div class="optionRow">
-  <input type="checkbox" id="changeOnFail">
-  <label for="changeOnFail">Cambiar palabras y puertas al fallar</label>
-</div>
-<div class="optionRow">
-  <input type="checkbox" id="sameVowel">
-  <label for="sameVowel">Todas las sílabas con la misma vocal</label>
-</div>
-
-
+    <input type="checkbox" id="changeOnFail">
+    <label for="changeOnFail">Cambiar palabras y puertas al fallar</label>
+  </div>
+  <div class="optionRow">
+    <input type="checkbox" id="sameVowel">
+    <label for="sameVowel">Todas las sílabas con la misma vocal</label>
+  </div>
 
 </div>
 
@@ -66,17 +66,22 @@
   <audio id="sndPrize" src="sound/prize.mp3"></audio>
   <audio id="sndBalloons" src="sound/balloons.mp3"></audio>
   <audio id="sndPop" src="sound/pop.mp3"></audio>
+<div id="rewardsDialog" class="dialog">
+  <div class="dialogContent">
+    
+    <button class="closeDialogBtn" id="closeRewardsX">✕</button>
 
-  <div id="rewardsDialog" class="dialog">
-    <div class="dialogContent">
-      <button id="resetRewardsBtn">Resetear premios</button>
+    <h2>Premios conseguidos</h2>
 
-      <h2>Premios conseguidos</h2>
-      <div id="rewardsList"></div>
+    <div id="rewardsList"></div>
 
-      <button id="closeRewardsBtn">Cerrar</button>
+    <div class="dialogActions">
+      <button id="resetRewardsBtn" class="resetBtn">Resetear premios</button>
+      <button id="closeRewardsBtn" class="closeBtn">Cerrar</button>
+    </div>
+
   </div>
-  </div>
+</div>
 
 
 <script src="js/index.js"  ></script>
