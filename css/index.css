@@ -328,3 +328,39 @@
   gap: 6px;
   font-size: 0.9rem;
 }
+
+#inventoryPanel {
+  max-height: 250px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+
+#rewardsList {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 columnas */
+  gap: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.prizeItem {
+  display: flex;
+  flex-direction: column; /* Imagen arriba, número abajo */
+  align-items: center;
+  text-align: center;
+}
+
+.prizeIcon {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+}
+
+.prizeCount {
+  margin-top: 4px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+}

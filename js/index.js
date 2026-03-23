@@ -18,7 +18,7 @@ changeOnFailChk.checked = JSON.parse(localStorage.getItem("changeOnFail") || "fa
 let progress = 0; // porcentaje actual
 let clickLocked = false;
 
-let unlockedRewards = JSON.parse(localStorage.getItem("unlockedRewards") || "[]");
+let unlockedRewards = JSON.parse(localStorage.getItem("unlockedRewards") || "{}");
 
 
 const sameVowelChk = document.getElementById("sameVowel");
@@ -145,14 +145,24 @@ function darken(){
 function undarken(){
   document.getElementById("darkLayer").style.display = "none";
 }
+
+
 function unlockItem() {
 
   let index = Math.floor(Math.random() * rewards.length);
-  let wonPrize = rewards[index];
+  let wonPrize = rewards[index];   // ejemplo: "img/premios/premio3.png"
 
-  unlockedRewards.push(wonPrize);
+  // 🔹 Añadir al inventario agrupado
+  if (!unlockedRewards[wonPrize]) {
+    unlockedRewards[wonPrize] = 1;
+  } else {
+    unlockedRewards[wonPrize]++;
+  }
+
+  // 🔹 Guardar inventario
   localStorage.setItem("unlockedRewards", JSON.stringify(unlockedRewards));
 
+  // 🔹 Mostrar premio como siempre
   const reward = document.getElementById("rewardImage");
   reward.src = wonPrize;
   reward.classList.add("show");
@@ -164,8 +174,43 @@ function unlockItem() {
     animateRewardToSidebar();
     reward.classList.remove("show");
     undarken();
+
+    // 🔹 ACTUALIZAR PANEL DE PREMIOS
+    renderInventory();
+
   }, 5000);
 }
+
+
+function renderInventory() {
+  const panel = document.getElementById("rewardsList");
+  panel.innerHTML = "";
+
+  for (const prize in unlockedRewards) {
+    const count = unlockedRewards[prize];
+
+    const item = document.createElement("div");
+    item.className = "prizeItem";
+
+    const img = document.createElement("img");
+    img.src = prize;
+    img.className = "prizeIcon";
+
+    const label = document.createElement("div");
+    label.className = "prizeCount";
+    label.textContent = "x" + count;
+
+    item.appendChild(img);
+    item.appendChild(label);
+
+    panel.appendChild(item);
+  }
+}
+
+
+
+
+
 
 
 function animateRewardToSidebar(){
@@ -291,7 +336,7 @@ function checkDoor(syl, door) {
     door.classList.add("open");
 
     // Aumentar progreso
-    progress += 20;
+    progress += 100;
     if (progress > 100) progress = 100;
     document.getElementById("progressBar").style.width = progress + "%";
 
@@ -364,13 +409,9 @@ function launchBalloons() {
 
       // RETRASO ALEATORIO
       b.style.animationDelay = (Math.random()*1.5) + "s";
-
-      // EXPLOSIÓN
-      b.onclick = () => {
-        b.classList.add("pop");
-        play("sndPop");
-        setTimeout(()=>b.remove(),250);
-      };
+     
+      b.addEventListener("mousedown", popBalloon);
+      b.addEventListener("touchstart", popBalloon);
 
       document.body.appendChild(b);
 
@@ -382,6 +423,13 @@ function launchBalloons() {
   });
 }
 
+function popBalloon(e) {
+  e.preventDefault();
+  const balloon = e.currentTarget;
+  balloon.classList.add("pop");
+  play("sndPop");
+  setTimeout(() => balloon.remove(), 250);
+}
 
 newRound();
 
@@ -397,22 +445,38 @@ if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("js/sw.js");
 }
 
-
 showRewardsBtn.onclick = () => {
   rewardsList.innerHTML = "";
 
-  if (unlockedRewards.length === 0) {
+  // Si no hay premios
+  if (Object.keys(unlockedRewards).length === 0) {
     rewardsList.innerHTML = "<p>Aún no tienes premios.</p>";
   } else {
-    unlockedRewards.forEach(src => {
+
+    // Mostrar premios agrupados
+    for (const prize in unlockedRewards) {
+      const count = unlockedRewards[prize];
+
+      const row = document.createElement("div");
+      row.className = "prizeRow";
+
       const img = document.createElement("img");
-      img.src = src;
-      rewardsList.appendChild(img);
-    });
+      img.src = prize;
+      img.className = "prizeIcon";
+
+      const label = document.createElement("span");
+      label.textContent = "x" + count;
+
+      row.appendChild(img);
+      row.appendChild(label);
+
+      rewardsList.appendChild(row);
+    }
   }
 
   rewardsDialog.style.display = "flex";
 };
+
 
 resetRewardsBtn.onclick = () => {
   unlockedRewards = [];
