@@ -32,7 +32,7 @@ const BuildGame = {
     this.filled = 0;
     this.mistakes = 0;
 
-    $("buildEmoji").textContent = this.word.emoji;
+    showWordPic($("buildEmoji"), this.word);
     $("buildSlots").innerHTML = this.word.syl.map((s, i) =>
       `<span class="slot" data-i="${i}">${settings.buildHint ? `<i class="hint">${esc(show(s))}</i>` : ""}</span>`).join("");
 
@@ -74,6 +74,7 @@ const BuildGame = {
         session.locked = true;
         trackWord(this.word.word, this.mistakes === 0);
         $("buildSlots").classList.add("done");
+        revealWordPic($("buildEmoji"), this.word);
         later(() => {
           $("buildSlots").classList.remove("done");
           speak(this.word.word);

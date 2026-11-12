@@ -7,14 +7,15 @@ const GAMES = { silabas: SyllableGame, leer: ReadGame, construir: BuildGame, dib
 /* Rutas que abren un juego (algunas con un modo concreto) */
 const ROUTES = {
   silabas: [SyllableGame], leer: [ReadGame], construir: [BuildGame], dibujo: [PictureGame], falta: [MissingGame],
-  contar: [NumberGame, "count"], sumar: [NumberGame, "add"], restar: [NumberGame, "sub"],
+  contar: [NumberGame, "count"], numero: [NumberGame, "hear"], grupos: [NumberGame, "match"],
+  sumar: [NumberGame, "add"], restar: [NumberGame, "sub"],
 };
 const WORD_GAMES = [ReadGame, BuildGame, PictureGame, MissingGame];
 const resetDecks = () => WORD_GAMES.forEach(g => g.deck.reset());
 const SCREENS = ["menuScreen", "game", "progressScreen"];
 
 /* ---------------------------------------------------------
-   Navegación (#menu, #silabas, #leer, #construir, #dibujo, #falta, #contar, #sumar, #restar, #progreso)
+   Navegación (#menu, #silabas, #leer, #construir, #dibujo, #falta, #contar, #numero, #grupos, #sumar, #restar, #progreso)
    El botón «atrás» del navegador/móvil también funciona.
    --------------------------------------------------------- */
 function showScreen(id) {
@@ -205,6 +206,11 @@ function setupSettings() {
   });
   bindCheck("optSound", "sound", renderHud);
   bindCheck("optShowSyl", "showSyllables", redrawWords);
+  bindCheck("optShowPics", "showPics", () => {
+    const g = session.current;
+    const picId = { leer: "readEmoji", construir: "buildEmoji", falta: "missEmoji" }[g?.id];
+    if (picId && g.word) showWordPic($(picId), g.word);
+  });
   bindCheck("optBuildHint", "buildHint", () => restartGameIfPlaying("construir"));
   bindCheck("optBuildExtra", "buildExtra", () => restartGameIfPlaying("construir"));
   bindCheck("optOnlyCustom", "onlyCustom", () => { renderLevelInfo(); resetDecks(); });

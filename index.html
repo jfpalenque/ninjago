@@ -58,6 +58,10 @@
   <h2 class="menuSection">🔢 Números</h2>
   <nav class="menuGrid three" aria-label="Juegos de números">
     <a href="#contar" class="menuCard c8"><span class="ico">🍎</span><b>Contar</b><small>¿Cuántos hay?</small></a>
+    <a href="#numero" class="menuCard c11"><span class="ico">👂</span><b>¿Qué número?</b><small>Escucha y tócalo</small></a>
+    <a href="#grupos" class="menuCard c12"><span class="ico">🎯</span><b>Busca el grupo</b><small>Número y cantidad</small></a>
+  </nav>
+  <nav class="menuGrid" aria-label="Sumas y restas">
     <a href="#sumar" class="menuCard c9"><span class="ico">➕</span><b>Sumas</b><small>Junta y cuenta</small></a>
     <a href="#restar" class="menuCard c10"><span class="ico">➖</span><b>Restas</b><small>Quita y cuenta</small></a>
   </nav>
@@ -148,6 +152,7 @@
     <div id="viewNumbers" class="view" hidden>
       <div id="numCard" class="wordCard numCard">
         <div id="numSum" class="numSum"></div>
+        <div id="numBig" class="numBig"></div>
         <div id="numPics" class="numPics"></div>
       </div>
       <div id="numOptions" class="numOptions"></div>
@@ -267,6 +272,8 @@
   </div>
 
   <div class="setGroup">
+    <label class="optionRow"><input type="checkbox" id="optShowPics"> Mostrar los dibujos en «Lee la palabra», «Construye» y «¿Qué falta?»</label>
+    <p class="muted small">Si los quitas, el niño tiene que leer sin fijarse en el dibujo. El dibujo aparece como premio al acertar.</p>
     <label class="optionRow"><input type="checkbox" id="optShowSyl"> Separar las palabras en sílabas de colores</label>
     <label class="optionRow"><input type="checkbox" id="optBuildHint"> Pista (letras grises) en «Construye»</label>
     <label class="optionRow"><input type="checkbox" id="optBuildExtra"> Añadir sílabas trampa en «Construye»</label>

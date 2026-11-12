@@ -1,7 +1,7 @@
 /* Service worker de Dojo Ninja: funciona sin conexión.
    - HTML/JS/CSS: red primero (así las actualizaciones llegan) y caché si no hay red.
    - Imágenes y sonidos: caché primero (no cambian). */
-const CACHE = "dojo-ninja-v6";
+const CACHE = "dojo-ninja-v7";
 
 // premio19 no existe; premio25 (duplicado) se mantiene por compatibilidad
 const PRIZES = Array.from({ length: 32 }, (_, i) => i + 1).filter(n => n !== 19).map(n => `img/premios/premio${n}.png`);

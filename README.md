@@ -13,6 +13,8 @@ Funciona sin conexión y se puede instalar en el móvil o la tablet (PWA).
 | 🖼️ **Palabra y dibujo** | Se ve una palabra escrita (sin oírla) y hay que leerla y tocar su dibujo. Uno de los dibujos falsos empieza por la misma letra, para que lea la palabra entera. |
 | 🔍 **¿Qué falta?** | A la palabra le falta una sílaba y hay que elegir la que completa el hueco. |
 | 🍎 **Contar** | ¿Cuántos hay? Tocando los dibujos se numeran y se oye el número. |
+| 👂 **¿Qué número?** | Se oye un número y hay que tocarlo entre cuatro. |
+| 🎯 **Busca el grupo** | Se ve un número y hay que elegir el grupo de dibujos que tiene esa cantidad. |
 | ➕ **Sumas** | Dos grupos de dibujos para juntar y contar (2 + 3 = ?). |
 | ➖ **Restas** | Los dibujos que se van aparecen tachados (5 − 2 = ?). |
 | 🏆 **Mis premios** | Álbum de premios y cinturones (del blanco al dorado). |
@@ -24,6 +26,7 @@ Cada acierto suma una ⭐. Al llenar la barra se gana un premio sorpresa y salen
 
 - Sílabas que se practican, número de opciones y aciertos necesarios para el premio.
 - Nivel de las palabras (fácil, medio o difícil) y lo exigente que es el micrófono.
+- **Mostrar los dibujos** en «Lee la palabra», «Construye» y «¿Qué falta?». Si se quitan, sale una «?» y el dibujo aparece al acertar, para que el niño lea sin adivinar por el dibujo.
 - **Mis palabras**: añade las tuyas (su nombre, `a-bue-la`…) con un emoji. Se separan en sílabas automáticamente.
 - **Números**: contar y calcular hasta 5, 10 o 20, y si se muestran dibujos de ayuda en sumas y restas.
 - Mayúsculas o minúsculas, velocidad de la voz, color del ninja y sonido.
@@ -50,8 +53,8 @@ js/game-read.js       juego de lectura con micrófono
 js/game-build.js      juego de construir palabras
 js/game-picture.js    juego de palabra y dibujo
 js/game-missing.js    juego de ¿qué falta?
-js/game-numbers.js    juego de números (contar, sumas y restas)
+js/game-numbers.js    juego de números (contar, qué número, busca el grupo, sumas y restas)
 js/screen-progress.js pantalla de progreso
-js/app.js             navegación (#menu, #silabas, #leer, #construir, #dibujo, #falta, #contar, #sumar, #restar, #progreso) y ajustes
+js/app.js             navegación (#menu, #silabas, #leer, #construir, #dibujo, #falta, #contar, #numero, #grupos, #sumar, #restar, #progreso) y ajustes
 sw.js                 modo sin conexión
 ```

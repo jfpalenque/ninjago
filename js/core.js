@@ -4,7 +4,7 @@
    ========================================================= */
 "use strict";
 
-const APP_VERSION = "3.1.0";
+const APP_VERSION = "3.2.0";
 
 // premio25.png es idéntico a premio18.png y premio19.png no existe
 const DUPLICATE_PRIZES = { "img/premios/premio25.png": "img/premios/premio18.png" };
@@ -83,7 +83,7 @@ const DEFAULT_SETTINGS = {
   mode: "doors", count: 5, letters: ["P"], changeOnFail: false, sameVowel: false,
   // palabras
   wordLevel: "1", micLevel: "normal", showSyllables: true, buildHint: true, buildExtra: false,
-  customWords: [], onlyCustom: false,
+  customWords: [], onlyCustom: false, showPics: true,
   // números
   numMax: 10, numPics: true,
 };
@@ -117,7 +117,7 @@ for (const [dup, orig] of Object.entries(DUPLICATE_PRIZES)) {
 
 const STATS_DEFAULT = {
   stars: 0, bestStreak: 0, progress: 0, syllablesOk: 0, wordsRead: 0, wordsBuilt: 0,
-  picturesOk: 0, missingOk: 0, countOk: 0, sumsOk: 0, subsOk: 0,
+  picturesOk: 0, missingOk: 0, countOk: 0, sumsOk: 0, subsOk: 0, hearOk: 0, matchOk: 0,
 };
 let stats = { ...STATS_DEFAULT, ...load("dojoStats", {}) };
 let wordStats = load("dojoWordStats", {});      // { palabra: { ok, fail } }

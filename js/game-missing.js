@@ -35,7 +35,7 @@ const MissingGame = {
     this.gap = Math.floor(Math.random() * w.syl.length);
     this.pickOptions();
 
-    $("missEmoji").textContent = w.emoji;
+    showWordPic($("missEmoji"), w);
     $("missSlots").innerHTML = w.syl.map((s, i) => i === this.gap
       ? `<span class="slot gap" id="missGap">?</span>`
       : `<span class="slot filled fixed" style="--c:${SYL_COLORS[i % SYL_COLORS.length]}">${esc(show(s))}</span>`).join("");
@@ -70,6 +70,7 @@ const MissingGame = {
       gap.classList.add("filled");
       tile.classList.add("used");
       $("missCard").classList.add("good");
+      revealWordPic($("missEmoji"), this.word);
       later(() => {
         speak(this.word.word);
         const [x, y] = centerOf($("missSlots"));

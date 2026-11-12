@@ -17,6 +17,8 @@ function renderProgressScreen() {
     ["🖼️", stats.picturesOk, "dibujos acertados"],
     ["🔍", stats.missingOk, "palabras completadas"],
     ["🍎", stats.countOk, "veces contado"],
+    ["👂", stats.hearOk, "números reconocidos"],
+    ["🎯", stats.matchOk, "grupos encontrados"],
     ["➕", stats.sumsOk, "sumas"],
     ["➖", stats.subsOk, "restas"],
   ];

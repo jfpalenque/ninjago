@@ -45,7 +45,7 @@ const ReadGame = {
     this.stopListening();
     this.word = this.deck.next();
     this.attempts = 0;
-    $("readEmoji").textContent = this.word.emoji;
+    showWordPic($("readEmoji"), this.word);
     $("readWord").innerHTML = wordHTML(this.word);
     restartAnim($("readCard"), "enter");
     $("readCard").classList.remove("good", "bad");
@@ -152,6 +152,7 @@ const ReadGame = {
   success() {
     trackWord(this.word.word, true);
     $("readCard").classList.add("good");
+    revealWordPic($("readEmoji"), this.word);
     const [x, y] = centerOf($("readCard"));
     scoreCorrect({ x, y, statKey: "wordsRead", delay: 2200 });
     later(() => speak(this.word.word), 300);

@@ -124,6 +124,19 @@ function makeDeck() {
   };
 }
 
+/* Dibujo de la palabra. Con «Mostrar los dibujos» desactivado se ve una «?»
+   y el dibujo se descubre al acertar: así el niño lee sin adivinar por el dibujo. */
+function showWordPic(el, w) {
+  el.classList.toggle("mystery", !settings.showPics);
+  el.textContent = settings.showPics ? w.emoji : "?";
+}
+function revealWordPic(el, w) {
+  if (!el.classList.contains("mystery")) return;
+  el.classList.remove("mystery");
+  el.textContent = w.emoji;
+  restartAnim(el, "reveal");
+}
+
 /* Muestra una palabra separada en sílabas de colores (se pueden tocar para oírlas) */
 const SYL_COLORS = ["#e53935", "#1e88e5", "#43a047", "#8e24aa", "#ff8f00", "#00897b"];
 function wordHTML(w) {
