@@ -41,6 +41,8 @@ function route() {
     session.current = g;
     renderProgress();
     renderHud();
+    $("picBtn").hidden = !PIC_IDS[g.id];
+    applyShowPics();
     // Si el premio sigue en pantalla, el juego empezará cuando termine
     if (!session.rewardActive) g.enter();
   } else if (name === "progreso") {
@@ -52,6 +54,16 @@ function route() {
     setTimeout(() => mascotReact("wave"), 300);
   }
   document.body.dataset.screen = name;
+}
+
+/* Pone o quita los dibujos de las palabras en la pantalla actual */
+const PIC_IDS = { leer: "readEmoji", construir: "buildEmoji", falta: "missEmoji" };
+function applyShowPics() {
+  $("picBtn").textContent = settings.showPics ? "🖼️" : "🙈";
+  $("picBtn").classList.toggle("off", !settings.showPics);
+  const g = session.current;
+  const picId = PIC_IDS[g?.id];
+  if (picId && g.word && !document.querySelector(".wordCard.good")) showWordPic($(picId), g.word);
 }
 
 function restartGameIfPlaying(id) {
@@ -206,11 +218,7 @@ function setupSettings() {
   });
   bindCheck("optSound", "sound", renderHud);
   bindCheck("optShowSyl", "showSyllables", redrawWords);
-  bindCheck("optShowPics", "showPics", () => {
-    const g = session.current;
-    const picId = { leer: "readEmoji", construir: "buildEmoji", falta: "missEmoji" }[g?.id];
-    if (picId && g.word) showWordPic($(picId), g.word);
-  });
+  bindCheck("optShowPics", "showPics", applyShowPics);
   bindCheck("optBuildHint", "buildHint", () => restartGameIfPlaying("construir"));
   bindCheck("optBuildExtra", "buildExtra", () => restartGameIfPlaying("construir"));
   bindCheck("optOnlyCustom", "onlyCustom", () => { renderLevelInfo(); resetDecks(); });
@@ -274,6 +282,13 @@ function init() {
   setupDialogs();
 
   $("listenBtn").onclick = () => session.current?.listen();
+  $("picBtn").onclick = () => {
+    settings.showPics = !settings.showPics;
+    $("optShowPics").checked = settings.showPics;
+    saveSettings();
+    applyShowPics();
+    say(settings.showPics ? "Dibujos visibles 🖼️" : "Dibujos ocultos: ¡a leer! 🙈");
+  };
   $("muteBtn").onclick = () => {
     settings.sound = !settings.sound;
     $("optSound").checked = settings.sound;
@@ -314,7 +329,15 @@ function init() {
       // El SW de la versión 1 vivía en js/sw.js y no controlaba la página
       if (r.active && r.active.scriptURL.endsWith("/js/sw.js")) r.unregister();
     }));
-    navigator.serviceWorker.register("sw.js").catch(() => {});
+    // Cuando llega una versión nueva, recarga una vez para no mezclar archivos viejos y nuevos
+    const hadController = !!navigator.serviceWorker.controller;
+    let reloading = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (!hadController || reloading) return;
+      reloading = true;
+      location.reload();
+    });
+    navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).catch(() => {});
   }
 }
 

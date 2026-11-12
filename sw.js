@@ -1,7 +1,8 @@
 /* Service worker de Dojo Ninja: funciona sin conexión.
-   - HTML/JS/CSS: red primero (así las actualizaciones llegan) y caché si no hay red.
+   - HTML/JS/CSS: red primero, saltándose la caché HTTP del navegador (así nunca se
+     mezcla un index.html nuevo con un JS antiguo) y caché si no hay red.
    - Imágenes y sonidos: caché primero (no cambian). */
-const CACHE = "dojo-ninja-v7";
+const CACHE = "dojo-ninja-v8";
 
 // premio19 no existe; premio25 (duplicado) se mantiene por compatibilidad
 const PRIZES = Array.from({ length: 32 }, (_, i) => i + 1).filter(n => n !== 19).map(n => `img/premios/premio${n}.png`);
@@ -15,7 +16,9 @@ const ASSETS = [
 ];
 
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE)
+    .then(c => c.addAll(ASSETS.map(u => new Request(u, { cache: "reload" }))))
+    .then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", e => {
@@ -34,8 +37,9 @@ self.addEventListener("fetch", e => {
 
   if (isCode) {
     e.respondWith(
-      fetch(req)
+      fetch(req.url, { cache: "no-cache", credentials: "same-origin" })
         .then(resp => {
+          if (!resp.ok) return resp;
           const copy = resp.clone();
           caches.open(CACHE).then(c => c.put(req, copy));
           return resp;

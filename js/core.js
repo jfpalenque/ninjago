@@ -4,7 +4,7 @@
    ========================================================= */
 "use strict";
 
-const APP_VERSION = "3.2.0";
+const APP_VERSION = "3.2.1";
 
 // premio25.png es idéntico a premio18.png y premio19.png no existe
 const DUPLICATE_PRIZES = { "img/premios/premio25.png": "img/premios/premio18.png" };

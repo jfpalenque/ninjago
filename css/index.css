@@ -220,6 +220,7 @@ button:focus-visible { outline: 4px solid var(--gold); outline-offset: 3px; }
 .hudBtn:active { transform: scale(.9); }
 .hudBtn.album { background: linear-gradient(180deg, #ffb347, #ff7b00); border-color: #ffe0b3; }
 .hudBtn.album.bump { animation: bump .6s; }
+#picBtn.off { background: #5b3fa0; border-color: #b9a9d4; }
 @keyframes bump { 30% { transform: scale(1.4) rotate(-10deg); } 60% { transform: scale(.9) rotate(8deg); } }
 
 .hudStat {
