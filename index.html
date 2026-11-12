@@ -5,7 +5,7 @@
 <title>Dojo Ninja</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1b1446">
-<meta name="description" content="Juego educativo para aprender a leer: sílabas, lectura de palabras con micrófono, construir palabras y premios.">
+<meta name="description" content="Juego educativo para aprender a leer y a contar: sílabas, lectura con micrófono, construir palabras, números, sumas, restas y premios.">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="img/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="img/icon-192.png">
@@ -46,11 +46,24 @@
     <div id="startMascot" class="mascotHolder big"></div>
     <p id="startBelt" class="startBelt"></p>
   </div>
-  <nav class="menuGrid" aria-label="Juegos">
+  <h2 class="menuSection">📖 Aprende a leer</h2>
+  <nav class="menuGrid" aria-label="Juegos de lectura">
     <a href="#silabas" class="menuCard c1"><span class="ico">🚪</span><b>Sílabas</b><small>Escucha y abre la puerta</small></a>
     <a href="#leer" class="menuCard c2"><span class="ico">🎤</span><b>Lee la palabra</b><small>Léela en voz alta</small></a>
     <a href="#construir" class="menuCard c3"><span class="ico">🧩</span><b>Construye</b><small>Ordena las sílabas</small></a>
-    <button type="button" class="menuCard c4" data-open-album><span class="ico">🏆</span><b>Mis premios</b><small id="menuPrizes"></small></button>
+    <a href="#dibujo" class="menuCard c6"><span class="ico">🖼️</span><b>Palabra y dibujo</b><small>Lee y toca su dibujo</small></a>
+    <a href="#falta" class="menuCard c7 wide"><span class="ico">🔍</span><b>¿Qué falta?</b><small>Completa la palabra</small></a>
+  </nav>
+
+  <h2 class="menuSection">🔢 Números</h2>
+  <nav class="menuGrid three" aria-label="Juegos de números">
+    <a href="#contar" class="menuCard c8"><span class="ico">🍎</span><b>Contar</b><small>¿Cuántos hay?</small></a>
+    <a href="#sumar" class="menuCard c9"><span class="ico">➕</span><b>Sumas</b><small>Junta y cuenta</small></a>
+    <a href="#restar" class="menuCard c10"><span class="ico">➖</span><b>Restas</b><small>Quita y cuenta</small></a>
+  </nav>
+
+  <nav class="menuGrid" aria-label="Premios y progreso">
+    <button type="button" class="menuCard c4 wide" data-open-album><span class="ico">🏆</span><b>Mis premios</b><small id="menuPrizes"></small></button>
     <a href="#progreso" class="menuCard c5 wide"><span class="ico">📊</span><b>Mi progreso</b><small>Para mayores</small></a>
   </nav>
 </section>
@@ -112,6 +125,32 @@
       </div>
       <div id="buildTiles" class="tiles"></div>
       <button id="skipBuildBtn" class="skipBtn">Saltar ⏭</button>
+    </div>
+
+    <!-- Palabra y dibujo -->
+    <div id="viewPicture" class="view" hidden>
+      <div id="picCard" class="wordCard">
+        <div id="picWord" class="wordText"></div>
+      </div>
+      <div id="picOptions" class="picOptions"></div>
+    </div>
+
+    <!-- ¿Qué falta? -->
+    <div id="viewMissing" class="view" hidden>
+      <div id="missCard" class="wordCard compact">
+        <div id="missEmoji" class="wordEmoji"></div>
+        <div id="missSlots" class="slots"></div>
+      </div>
+      <div id="missTiles" class="tiles"></div>
+    </div>
+
+    <!-- Números: contar, sumar y restar -->
+    <div id="viewNumbers" class="view" hidden>
+      <div id="numCard" class="wordCard numCard">
+        <div id="numSum" class="numSum"></div>
+        <div id="numPics" class="numPics"></div>
+      </div>
+      <div id="numOptions" class="numOptions"></div>
     </div>
   </section>
 </main>
@@ -245,6 +284,16 @@
     <label class="optionRow"><input type="checkbox" id="optOnlyCustom"> Usar solo mis palabras</label>
   </div>
 
+  <h3 class="setSection">🔢 Números</h3>
+
+  <div class="setGroup">
+    <div class="setTitle">Contar y calcular hasta</div>
+    <div class="segmented" id="numMaxSeg">
+      <button data-value="5">5</button><button data-value="10">10</button><button data-value="20">20</button>
+    </div>
+    <label class="optionRow"><input type="checkbox" id="optNumPics"> Dibujos para ayudar en sumas y restas</label>
+  </div>
+
   <h3 class="setSection">🎨 General</h3>
 
   <div class="setGroup">
@@ -274,6 +323,9 @@
 <script src="js/game-syllables.js"></script>
 <script src="js/game-read.js"></script>
 <script src="js/game-build.js"></script>
+<script src="js/game-picture.js"></script>
+<script src="js/game-missing.js"></script>
+<script src="js/game-numbers.js"></script>
 <script src="js/screen-progress.js"></script>
 <script src="js/app.js"></script>
 </body>

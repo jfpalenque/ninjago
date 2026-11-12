@@ -3,11 +3,18 @@
    ========================================================= */
 "use strict";
 
-const GAMES = { silabas: SyllableGame, leer: ReadGame, construir: BuildGame };
+const GAMES = { silabas: SyllableGame, leer: ReadGame, construir: BuildGame, dibujo: PictureGame, falta: MissingGame, numeros: NumberGame };
+/* Rutas que abren un juego (algunas con un modo concreto) */
+const ROUTES = {
+  silabas: [SyllableGame], leer: [ReadGame], construir: [BuildGame], dibujo: [PictureGame], falta: [MissingGame],
+  contar: [NumberGame, "count"], sumar: [NumberGame, "add"], restar: [NumberGame, "sub"],
+};
+const WORD_GAMES = [ReadGame, BuildGame, PictureGame, MissingGame];
+const resetDecks = () => WORD_GAMES.forEach(g => g.deck.reset());
 const SCREENS = ["menuScreen", "game", "progressScreen"];
 
 /* ---------------------------------------------------------
-   Navegación (#menu, #silabas, #leer, #construir, #progreso)
+   Navegación (#menu, #silabas, #leer, #construir, #dibujo, #falta, #contar, #sumar, #restar, #progreso)
    El botón «atrás» del navegador/móvil también funciona.
    --------------------------------------------------------- */
 function showScreen(id) {
@@ -24,8 +31,9 @@ function route() {
   speechSynthesis?.cancel();
   document.querySelectorAll("dialog[open]").forEach(d => d.close());
 
-  const g = GAMES[name];
+  const [g, mode] = ROUTES[name] || [];
   if (g) {
+    g.setup?.(mode);
     showScreen("game");
     Object.values(GAMES).forEach(x => ($(x.view).hidden = x !== g));
     document.body.dataset.game = g.id;
@@ -130,7 +138,7 @@ function setupCustomWords() {
     $("customEmoji").value = "";
     renderCustomWords();
     speak(raw.replace(/-/g, ""));
-    ReadGame.deck.reset(); BuildGame.deck.reset();
+    resetDecks();
   });
 
   $("customList").addEventListener("click", e => {
@@ -139,7 +147,7 @@ function setupCustomWords() {
     settings.customWords = settings.customWords.filter((_, i) => i !== Number(b.dataset.del));
     saveSettings();
     renderCustomWords();
-    ReadGame.deck.reset(); BuildGame.deck.reset();
+    resetDecks();
   });
 }
 
@@ -153,9 +161,10 @@ function setupSettings() {
   setupSegmented("countSeg", "count", Number, () => restartGameIfPlaying("silabas"));
   setupSegmented("levelSeg", "wordLevel", v => v, () => {
     renderLevelInfo();
-    ReadGame.deck.reset(); BuildGame.deck.reset();
-    restartGameIfPlaying("leer"); restartGameIfPlaying("construir");
+    resetDecks();
+    WORD_GAMES.forEach(g => restartGameIfPlaying(g.id));
   });
+  setupSegmented("numMaxSeg", "numMax", Number, () => restartGameIfPlaying("numeros"));
   setupSegmented("micSeg", "micLevel", v => v, renderLevelInfo);
 
   renderLetterChips();
@@ -185,19 +194,21 @@ function setupSettings() {
   };
   const redrawWords = () => {
     if (session.current === ReadGame && ReadGame.word) $("readWord").innerHTML = wordHTML(ReadGame.word);
+    if (session.current === PictureGame && PictureGame.word) $("picWord").innerHTML = wordHTML(PictureGame.word);
   };
   bindCheck("optChangeOnFail", "changeOnFail");
   bindCheck("optSameVowel", "sameVowel", () => restartGameIfPlaying("silabas"));
   bindCheck("optLowercase", "lowercase", () => {
     SyllableGame.refreshLabels();
     redrawWords();
-    if (session.current === BuildGame) BuildGame.next();
+    if ([BuildGame, PictureGame, MissingGame].includes(session.current)) session.current.next();
   });
   bindCheck("optSound", "sound", renderHud);
   bindCheck("optShowSyl", "showSyllables", redrawWords);
   bindCheck("optBuildHint", "buildHint", () => restartGameIfPlaying("construir"));
   bindCheck("optBuildExtra", "buildExtra", () => restartGameIfPlaying("construir"));
-  bindCheck("optOnlyCustom", "onlyCustom", () => { renderLevelInfo(); ReadGame.deck.reset(); BuildGame.deck.reset(); });
+  bindCheck("optOnlyCustom", "onlyCustom", () => { renderLevelInfo(); resetDecks(); });
+  bindCheck("optNumPics", "numPics", () => restartGameIfPlaying("numeros"));
 
   const rate = $("optRate");
   rate.value = settings.rate;

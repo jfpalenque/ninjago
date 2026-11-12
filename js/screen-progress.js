@@ -14,6 +14,11 @@ function renderProgressScreen() {
     ["🚪", stats.syllablesOk, "sílabas acertadas"],
     ["🎤", stats.wordsRead, "palabras leídas"],
     ["🧩", stats.wordsBuilt, "palabras construidas"],
+    ["🖼️", stats.picturesOk, "dibujos acertados"],
+    ["🔍", stats.missingOk, "palabras completadas"],
+    ["🍎", stats.countOk, "veces contado"],
+    ["➕", stats.sumsOk, "sumas"],
+    ["➖", stats.subsOk, "restas"],
   ];
   $("statCards").innerHTML = cards.map(([ico, val, label]) =>
     `<div class="statCard"><span class="ico">${ico}</span><b>${esc(val)}</b><small>${label}</small></div>`).join("");
@@ -26,7 +31,7 @@ function renderProgressScreen() {
 
   const chip = ([w, s], kind) => `<button class="wchip ${kind}" data-say="${esc(w)}">${esc(show(w))} <small>✅${s.ok} ❌${s.fail}</small></button>`;
   $("hardWords").innerHTML = hard.length ? hard.map(e => chip(e, "hard")).join("") : `<p class="muted">¡Ninguna por ahora! 🎉</p>`;
-  $("masterWords").innerHTML = master.length ? master.map(e => chip(e, "ok")).join("") : `<p class="muted">Juega a «Lee la palabra» o «Construye» para verlas aquí.</p>`;
+  $("masterWords").innerHTML = master.length ? master.map(e => chip(e, "ok")).join("") : `<p class="muted">Juega a los juegos de palabras para verlas aquí.</p>`;
 }
 
 document.addEventListener("click", e => {
