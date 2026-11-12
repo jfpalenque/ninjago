@@ -3,88 +3,278 @@
 <head>
 <meta charset="UTF-8">
 <title>Dojo Ninja</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1b1446">
+<meta name="description" content="Juego educativo para aprender a leer: sílabas, lectura de palabras con micrófono, construir palabras y premios.">
 <link rel="manifest" href="manifest.json">
-
+<link rel="icon" href="img/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="img/icon-192.png">
 <link rel="stylesheet" href="css/index.css">
-
 </head>
 
 <body>
 
-<button id="showPanelBtn">☰</button>
-
-<div id="leftColumn">
-  <div id="versionBox" class="versionBox"></div>
-  <button id="hidePanelBtn">Ocultar panel</button>
-
-  <button id="showRewardsBtn">🎁 Ver premios</button>
-
-  <div>
-    <div class="sectionTitle">Número de puertas</div>
-      <select id="doorCount" style="width:100%; padding:6px; border-radius:6px; font-size:1rem;">
-        <option value="2">2 puertas</option>
-        <option value="3">3 puertas</option>
-        <option value="4">4 puertas</option>
-        <option value="5" selected>5 puertas</option>
-      </select>
-  </div>
-
-  <div id="syllablePanel">
-    <div class="sectionTitle">Elegir sílabas</div>
-    <div id="lettersContainer"></div>
-  </div>
-
-  <div class="optionRow">
-    <input type="checkbox" id="changeOnFail">
-    <label for="changeOnFail">Cambiar palabras y puertas al fallar</label>
-  </div>
-  <div class="optionRow">
-    <input type="checkbox" id="sameVowel">
-    <label for="sameVowel">Todas las sílabas con la misma vocal</label>
-  </div>
-
+<!-- ============ FONDO ANIMADO ============ -->
+<div id="sky" aria-hidden="true">
+  <div id="stars"></div>
+  <div id="moon"></div>
+  <div class="cloud c1"></div>
+  <div class="cloud c2"></div>
+  <div class="cloud c3"></div>
+  <div id="petals"></div>
+  <svg id="landscape" viewBox="0 0 1200 220" preserveAspectRatio="xMidYMax slice">
+    <path class="mount far" d="M0 220 L0 120 L120 60 L230 130 L360 40 L480 120 L600 70 L720 140 L850 50 L980 130 L1100 80 L1200 120 L1200 220Z"/>
+    <path class="mount near" d="M0 220 L0 170 L150 110 L300 175 L450 125 L620 180 L800 120 L980 175 L1200 130 L1200 220Z"/>
+    <g class="pagoda" transform="translate(930 60)">
+      <rect x="40" y="70" width="60" height="90"/>
+      <path d="M10 75 Q70 50 130 75 L115 85 Q70 65 25 85Z"/>
+      <rect x="50" y="35" width="40" height="40"/>
+      <path d="M20 40 Q70 15 120 40 L105 50 Q70 30 35 50Z"/>
+      <rect x="58" y="5" width="24" height="35"/>
+      <path d="M35 10 Q70 -10 105 10 L92 18 Q70 4 48 18Z"/>
+      <rect x="68" y="-15" width="4" height="20"/>
+      <rect class="win" x="62" y="95" width="16" height="22" rx="3"/>
+    </g>
+  </svg>
 </div>
 
-  <div id="gameArea">
-    <div id="darkLayer"></div>
-
-    <div id="progressContainer"> 
-      <div id="progressBar"></div> 
-    </div> 
-
-    <button class="listen-btn" onclick="speakSyllable()">🔊 Escuchar sílaba</button>
-
-    <div class="doors" id="doors"></div>
+<!-- ============ MENÚ PRINCIPAL ============ -->
+<section id="menuScreen" class="screen" data-screen="menu">
+  <button class="hudBtn cornerBtn" data-open-settings aria-label="Ajustes para mayores" title="Ajustes para mayores">⚙️</button>
+  <h1 class="title">Dojo <span>Ninja</span></h1>
+  <div class="menuHero">
+    <div id="startMascot" class="mascotHolder big"></div>
+    <p id="startBelt" class="startBelt"></p>
   </div>
+  <nav class="menuGrid" aria-label="Juegos">
+    <a href="#silabas" class="menuCard c1"><span class="ico">🚪</span><b>Sílabas</b><small>Escucha y abre la puerta</small></a>
+    <a href="#leer" class="menuCard c2"><span class="ico">🎤</span><b>Lee la palabra</b><small>Léela en voz alta</small></a>
+    <a href="#construir" class="menuCard c3"><span class="ico">🧩</span><b>Construye</b><small>Ordena las sílabas</small></a>
+    <button type="button" class="menuCard c4" data-open-album><span class="ico">🏆</span><b>Mis premios</b><small id="menuPrizes"></small></button>
+    <a href="#progreso" class="menuCard c5 wide"><span class="ico">📊</span><b>Mi progreso</b><small>Para mayores</small></a>
+  </nav>
+</section>
 
-  <img id="rewardImage">
+<!-- ============ JUEGO ============ -->
+<main id="game" data-screen="game" hidden>
 
-  <audio id="sndCorrect" src="sound/correct.mp3"></audio>
-  <audio id="sndWrong" src="sound/wrong.mp3"></audio>
-  <!--<audio id="sndDoor" src="sound/door.mp3"></audio>-->
-  <audio id="sndPrize" src="sound/prize.mp3"></audio>
-  <audio id="sndBalloons" src="sound/balloons.mp3"></audio>
-  <audio id="sndPop" src="sound/pop.mp3"></audio>
-<div id="rewardsDialog" class="dialog">
-  <div class="dialogContent">
-    
-    <button class="closeDialogBtn" id="closeRewardsX">✕</button>
+  <header id="hud">
+    <a href="#menu" class="hudBtn" aria-label="Volver al menú" title="Menú">🏠</a>
+    <div class="hudStat" title="Estrellas conseguidas"><span>⭐</span><b id="starCount">0</b></div>
+    <div class="hudStat streak" id="streakBox" title="Racha de aciertos"><span>🔥</span><b id="streakCount">0</b></div>
+    <div id="beltBadge" class="beltBadge" title="Tu cinturón"></div>
+    <div class="hudSpacer"></div>
+    <button id="muteBtn" class="hudBtn" aria-label="Silenciar sonidos" title="Sonido">🔔</button>
+    <button class="hudBtn" data-open-settings aria-label="Ajustes para mayores" title="Ajustes">⚙️</button>
+    <button id="albumBtn" class="hudBtn album" data-open-album aria-label="Ver premios" title="Mis premios">🎁</button>
+  </header>
 
-    <h2>Premios conseguidos</h2>
+  <div id="progress" aria-label="Progreso hacia el premio"></div>
 
-    <div id="rewardsList"></div>
-
-    <div class="dialogActions">
-      <button id="resetRewardsBtn" class="resetBtn">Resetear premios</button>
-      <button id="closeRewardsBtn" class="closeBtn">Cerrar</button>
+  <section id="stage">
+    <div id="mascotRow">
+      <div id="mascot" class="mascotHolder"></div>
+      <div id="bubble" class="bubble">¿Qué sílaba oyes?</div>
+      <button id="listenBtn" class="listenBtn" aria-label="Escuchar">🔊<span>Escuchar</span></button>
     </div>
 
+    <!-- Sílabas -->
+    <div id="viewSyllables" class="view" hidden>
+      <div id="doors" class="doors"></div>
+      <div id="lanterns" class="lanterns" hidden></div>
+    </div>
+
+    <!-- Lee la palabra -->
+    <div id="viewRead" class="view" hidden>
+      <div id="readCard" class="wordCard">
+        <div id="readEmoji" class="wordEmoji"></div>
+        <div id="readWord" class="wordText"></div>
+      </div>
+      <p id="heard" class="heard"></p>
+      <button id="micBtn" class="micBtn" aria-label="Pulsa y lee la palabra">
+        <span class="micIco">🎤</span><span id="micLabel">¡Leer!</span>
+      </button>
+      <div id="manualCheck" class="manualCheck" hidden>
+        <p id="manualMsg" class="small"></p>
+        <div class="row">
+          <button id="manualOk" class="smallBtn ok">✅ ¡Bien leído!</button>
+          <button id="manualRetry" class="smallBtn primary">🔁 Otra vez</button>
+        </div>
+      </div>
+      <button id="skipWordBtn" class="skipBtn">Saltar ⏭</button>
+    </div>
+
+    <!-- Construye la palabra -->
+    <div id="viewBuild" class="view" hidden>
+      <div class="wordCard compact">
+        <div id="buildEmoji" class="wordEmoji"></div>
+        <div id="buildSlots" class="slots"></div>
+      </div>
+      <div id="buildTiles" class="tiles"></div>
+      <button id="skipBuildBtn" class="skipBtn">Saltar ⏭</button>
+    </div>
+  </section>
+</main>
+
+<!-- ============ MI PROGRESO ============ -->
+<section id="progressScreen" class="page" data-screen="progreso" hidden>
+  <header class="pageHead">
+    <a href="#menu" class="hudBtn" aria-label="Volver al menú">🏠</a>
+    <h2>📊 Mi progreso</h2>
+  </header>
+  <div id="statCards" class="statCards"></div>
+  <div class="infoPanel">
+    <h3>😅 Palabras que más cuestan</h3>
+    <div id="hardWords" class="wordChips"></div>
   </div>
+  <div class="infoPanel">
+    <h3>🏅 Palabras dominadas</h3>
+    <div id="masterWords" class="wordChips"></div>
+  </div>
+  <div class="infoPanel center">
+    <button id="resetStatsBtn" class="smallBtn danger">Borrar estadísticas</button>
+  </div>
+</section>
+
+<!-- ============ PREMIO ============ -->
+<div id="rewardOverlay" class="overlay" hidden>
+  <div class="rays"></div>
+  <div id="giftBox" class="giftBox">🎁</div>
+  <div id="prizeCard" class="prizeCard">
+    <span id="newBadge" class="newBadge">¡NUEVO!</span>
+    <img id="rewardImage" alt="Premio conseguido">
+  </div>
+  <p id="rewardText" class="rewardText"></p>
+  <button id="rewardOkBtn" class="bigBtn">¡Genial! 👍</button>
 </div>
 
+<canvas id="confetti" aria-hidden="true"></canvas>
 
-<script src="js/index.js"  ></script>
+<!-- ============ ÁLBUM DE PREMIOS ============ -->
+<dialog id="albumDialog" class="dialog">
+  <button class="closeX" data-close aria-label="Cerrar">✕</button>
+  <h2>🏆 Mis premios</h2>
+  <p id="albumCount" class="albumCount"></p>
+  <div id="beltPath" class="beltPath"></div>
+  <div id="albumGrid" class="albumGrid"></div>
+  <div class="dialogActions">
+    <button id="resetRewardsBtn" class="smallBtn danger">Borrar premios</button>
+    <button class="smallBtn primary" data-close>Cerrar</button>
+  </div>
+</dialog>
 
+<!-- ============ AJUSTES ============ -->
+<dialog id="settingsDialog" class="dialog drawer">
+  <button class="closeX" data-close aria-label="Cerrar">✕</button>
+  <h2>⚙️ Ajustes</h2>
+  <p class="muted">Para papás, mamás y profes</p>
+
+  <div class="setGroup">
+    <div class="setTitle">Aciertos para ganar premio</div>
+    <div class="segmented" id="goalSeg">
+      <button data-value="3">3</button><button data-value="5">5</button>
+      <button data-value="8">8</button><button data-value="10">10</button>
+    </div>
+  </div>
+
+  <h3 class="setSection">🚪 Juego de sílabas</h3>
+
+  <div class="setGroup">
+    <div class="setTitle">Modo</div>
+    <div class="segmented" id="modeSeg">
+      <button data-value="doors">🚪 Puertas</button>
+      <button data-value="lanterns">🏮 Farolillos</button>
+    </div>
+  </div>
+
+  <div class="setGroup">
+    <div class="setTitle">Número de opciones</div>
+    <div class="segmented" id="countSeg">
+      <button data-value="2">2</button><button data-value="3">3</button>
+      <button data-value="4">4</button><button data-value="5">5</button>
+    </div>
+  </div>
+
+  <div class="setGroup">
+    <div class="setTitle">Sílabas
+      <span class="setTools">
+        <button id="allLettersBtn" class="linkBtn">Todas</button> ·
+        <button id="noLettersBtn" class="linkBtn">Ninguna</button>
+      </span>
+    </div>
+    <div id="letterChips" class="letterChips"></div>
+    <p id="letterPreview" class="muted small"></p>
+    <label class="optionRow"><input type="checkbox" id="optChangeOnFail"> Cambiar sílabas al fallar</label>
+    <label class="optionRow"><input type="checkbox" id="optSameVowel"> Todas con la misma vocal (más difícil)</label>
+  </div>
+
+  <h3 class="setSection">📖 Juegos de palabras</h3>
+
+  <div class="setGroup">
+    <div class="setTitle">Nivel de las palabras</div>
+    <div class="segmented" id="levelSeg">
+      <button data-value="1">Fácil</button><button data-value="2">Medio</button>
+      <button data-value="3">Difícil</button><button data-value="all">Todas</button>
+    </div>
+    <p class="muted small" id="levelInfo"></p>
+  </div>
+
+  <div class="setGroup">
+    <div class="setTitle">Exigencia del micrófono</div>
+    <div class="segmented" id="micSeg">
+      <button data-value="easy">Suave</button><button data-value="normal">Normal</button><button data-value="strict">Estricta</button>
+    </div>
+    <p id="micInfo" class="muted small"></p>
+  </div>
+
+  <div class="setGroup">
+    <label class="optionRow"><input type="checkbox" id="optShowSyl"> Separar las palabras en sílabas de colores</label>
+    <label class="optionRow"><input type="checkbox" id="optBuildHint"> Pista (letras grises) en «Construye»</label>
+    <label class="optionRow"><input type="checkbox" id="optBuildExtra"> Añadir sílabas trampa en «Construye»</label>
+  </div>
+
+  <div class="setGroup">
+    <div class="setTitle">✏️ Mis palabras</div>
+    <form id="customForm" class="customForm" autocomplete="off">
+      <input id="customWord" placeholder="palabra o a-bue-la" maxlength="24" aria-label="Palabra nueva">
+      <input id="customEmoji" placeholder="🙂" maxlength="8" aria-label="Dibujo (emoji)">
+      <button class="smallBtn primary" type="submit">Añadir</button>
+    </form>
+    <p id="customError" class="error small" hidden></p>
+    <div id="customList" class="wordChips light"></div>
+    <label class="optionRow"><input type="checkbox" id="optOnlyCustom"> Usar solo mis palabras</label>
+  </div>
+
+  <h3 class="setSection">🎨 General</h3>
+
+  <div class="setGroup">
+    <div class="setTitle">Color del ninja</div>
+    <div id="colorPicker" class="colorPicker"></div>
+  </div>
+
+  <div class="setGroup">
+    <label class="optionRow"><input type="checkbox" id="optLowercase"> Mostrar en minúsculas</label>
+    <label class="optionRow"><input type="checkbox" id="optSound"> Efectos de sonido</label>
+    <label class="optionRow col">Velocidad de la voz
+      <input type="range" id="optRate" min="0.4" max="1.2" step="0.1">
+    </label>
+  </div>
+
+  <p id="versionBox" class="muted small center"></p>
+</dialog>
+
+<audio id="sndCorrect" src="sound/correct.mp3" preload="auto"></audio>
+<audio id="sndWrong" src="sound/wrong.mp3" preload="auto"></audio>
+<audio id="sndPrize" src="sound/prize.mp3" preload="auto"></audio>
+<audio id="sndBalloons" src="sound/balloons.mp3" preload="none"></audio>
+<audio id="sndPop" src="sound/pop.mp3" preload="auto"></audio>
+
+<script src="js/core.js"></script>
+<script src="js/words.js"></script>
+<script src="js/game-syllables.js"></script>
+<script src="js/game-read.js"></script>
+<script src="js/game-build.js"></script>
+<script src="js/screen-progress.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
