@@ -5,7 +5,7 @@
 <title>Dojo Ninja</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1b1446">
-<meta name="description" content="Juego educativo para aprender a leer y a contar: sílabas, lectura con micrófono, construir palabras, números, sumas, restas y premios.">
+<meta name="description" content="Juego educativo para aprender a leer y a contar: sílabas, lectura con micrófono, construir palabras, parejas, números, series, sumas, restas y premios.">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="img/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="img/icon-192.png">
@@ -52,7 +52,10 @@
     <a href="#leer" class="menuCard c2"><span class="ico">🎤</span><b>Lee la palabra</b><small>Léela en voz alta</small></a>
     <a href="#construir" class="menuCard c3"><span class="ico">🧩</span><b>Construye</b><small>Ordena las sílabas</small></a>
     <a href="#dibujo" class="menuCard c6"><span class="ico">🖼️</span><b>Palabra y dibujo</b><small>Lee y toca su dibujo</small></a>
-    <a href="#falta" class="menuCard c7 wide"><span class="ico">🔍</span><b>¿Qué falta?</b><small>Completa la palabra</small></a>
+    <a href="#falta" class="menuCard c7"><span class="ico">🔍</span><b>¿Qué falta?</b><small>Completa la palabra</small></a>
+    <a href="#parejas" class="menuCard c13"><span class="ico">🃏</span><b>Parejas</b><small>Palabra con su dibujo</small></a>
+    <a href="#sino" class="menuCard c14"><span class="ico">👍</span><b>¿Sí o no?</b><small>¿Pone lo del dibujo?</small></a>
+    <a href="#letras" class="menuCard c15"><span class="ico">🔤</span><b>Letras</b><small>Escribe la palabra</small></a>
   </nav>
 
   <h2 class="menuSection">🔢 Números</h2>
@@ -60,6 +63,9 @@
     <a href="#contar" class="menuCard c8"><span class="ico">🍎</span><b>Contar</b><small>¿Cuántos hay?</small></a>
     <a href="#numero" class="menuCard c11"><span class="ico">👂</span><b>¿Qué número?</b><small>Escucha y tócalo</small></a>
     <a href="#grupos" class="menuCard c12"><span class="ico">🎯</span><b>Busca el grupo</b><small>Número y cantidad</small></a>
+    <a href="#serie" class="menuCard c16"><span class="ico">🐛</span><b>Series</b><small>¿Qué número falta?</small></a>
+    <a href="#mayor" class="menuCard c17"><span class="ico">🐘</span><b>Mayor o menor</b><small>¿Cuál es más grande?</small></a>
+    <a href="#ordenar" class="menuCard c18"><span class="ico">🪜</span><b>Ordena</b><small>Del menor al mayor</small></a>
   </nav>
   <nav class="menuGrid" aria-label="Sumas y restas">
     <a href="#sumar" class="menuCard c9"><span class="ico">➕</span><b>Sumas</b><small>Junta y cuenta</small></a>
@@ -149,6 +155,33 @@
       <div id="missTiles" class="tiles"></div>
     </div>
 
+    <!-- Parejas -->
+    <div id="viewPairs" class="view" hidden>
+      <div id="pairsBoard" class="memBoard"></div>
+    </div>
+
+    <!-- ¿Sí o no? -->
+    <div id="viewYesNo" class="view" hidden>
+      <div id="ynCard" class="wordCard">
+        <div id="ynEmoji" class="wordEmoji"></div>
+        <div id="ynWord" class="wordText"></div>
+      </div>
+      <div class="ynBtns">
+        <button id="ynYes" class="ynBtn yes" aria-label="Sí">👍<span>Sí</span></button>
+        <button id="ynNo" class="ynBtn no" aria-label="No">👎<span>No</span></button>
+      </div>
+    </div>
+
+    <!-- Letras -->
+    <div id="viewSpell" class="view" hidden>
+      <div id="spellCard" class="wordCard compact">
+        <div id="spellEmoji" class="wordEmoji"></div>
+        <div id="spellSlots" class="slots letters"></div>
+      </div>
+      <div id="spellTiles" class="tiles letters"></div>
+      <button id="skipSpellBtn" class="skipBtn">Saltar ⏭</button>
+    </div>
+
     <!-- Números: contar, sumar y restar -->
     <div id="viewNumbers" class="view" hidden>
       <div id="numCard" class="wordCard numCard">
@@ -187,7 +220,7 @@
   <div id="giftBox" class="giftBox">🎁</div>
   <div id="prizeCard" class="prizeCard">
     <span id="newBadge" class="newBadge">¡NUEVO!</span>
-    <img id="rewardImage" alt="Premio conseguido">
+    <div id="rewardPrize" class="prizeHolder"></div>
   </div>
   <p id="rewardText" class="rewardText"></p>
   <button id="rewardOkBtn" class="bigBtn">¡Genial! 👍</button>
@@ -202,6 +235,8 @@
   <p id="albumCount" class="albumCount"></p>
   <div id="beltPath" class="beltPath"></div>
   <div id="albumGrid" class="albumGrid"></div>
+  <p id="medalCount" class="albumCount medalCount"></p>
+  <div id="medalGrid" class="medalGrid"></div>
   <div class="dialogActions">
     <button id="resetRewardsBtn" class="smallBtn danger">Borrar premios</button>
     <button class="smallBtn primary" data-close>Cerrar</button>
@@ -273,11 +308,11 @@
   </div>
 
   <div class="setGroup">
-    <label class="optionRow"><input type="checkbox" id="optShowPics"> Mostrar los dibujos en «Lee la palabra», «Construye» y «¿Qué falta?»</label>
+    <label class="optionRow"><input type="checkbox" id="optShowPics"> Mostrar los dibujos en «Lee la palabra», «Construye», «¿Qué falta?» y «Letras»</label>
     <p class="muted small">Si los quitas, el niño tiene que leer sin fijarse en el dibujo. El dibujo aparece como premio al acertar. También se cambia con el botón 🖼️/🙈 de arriba mientras juega.</p>
     <label class="optionRow"><input type="checkbox" id="optShowSyl"> Separar las palabras en sílabas de colores</label>
-    <label class="optionRow"><input type="checkbox" id="optBuildHint"> Pista (letras grises) en «Construye»</label>
-    <label class="optionRow"><input type="checkbox" id="optBuildExtra"> Añadir sílabas trampa en «Construye»</label>
+    <label class="optionRow"><input type="checkbox" id="optBuildHint"> Pista (letras grises) en «Construye» y «Letras»</label>
+    <label class="optionRow"><input type="checkbox" id="optBuildExtra"> Añadir sílabas o letras trampa en «Construye» y «Letras»</label>
   </div>
 
   <div class="setGroup">
@@ -312,9 +347,22 @@
   <div class="setGroup">
     <label class="optionRow"><input type="checkbox" id="optLowercase"> Mostrar en minúsculas</label>
     <label class="optionRow"><input type="checkbox" id="optSound"> Efectos de sonido</label>
+  </div>
+
+  <h3 class="setSection">🗣️ Voz</h3>
+
+  <div class="setGroup">
+    <div class="setTitle">Voz en español</div>
+    <select id="voiceSel" class="select" aria-label="Voz en español"></select>
+    <p id="voiceInfo" class="muted small"></p>
+    <div class="setTitle">Tono</div>
+    <div class="segmented" id="pitchSeg">
+      <button data-value="0.8">Grave</button><button data-value="1.1">Normal</button><button data-value="1.4">Aguda</button>
+    </div>
     <label class="optionRow col">Velocidad de la voz
       <input type="range" id="optRate" min="0.4" max="1.2" step="0.1">
     </label>
+    <button id="voiceTestBtn" class="smallBtn primary" type="button">🔊 Probar la voz</button>
   </div>
 
   <p id="versionBox" class="muted small center"></p>
@@ -333,6 +381,9 @@
 <script src="js/game-build.js"></script>
 <script src="js/game-picture.js"></script>
 <script src="js/game-missing.js"></script>
+<script src="js/game-pairs.js"></script>
+<script src="js/game-yesno.js"></script>
+<script src="js/game-spell.js"></script>
 <script src="js/game-numbers.js"></script>
 <script src="js/screen-progress.js"></script>
 <script src="js/app.js"></script>

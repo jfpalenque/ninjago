@@ -4,7 +4,7 @@
    ========================================================= */
 "use strict";
 
-const APP_VERSION = "3.2.1";
+const APP_VERSION = "3.3.0";
 
 // premio25.png es idéntico a premio18.png y premio19.png no existe
 const DUPLICATE_PRIZES = { "img/premios/premio25.png": "img/premios/premio18.png" };
@@ -13,19 +13,64 @@ const PRIZES = Array.from({ length: 32 }, (_, i) => i + 1)
   .filter(n => !MISSING_PRIZES.includes(n))
   .map(n => `img/premios/premio${n}.png`)
   .filter(p => !DUPLICATE_PRIZES[p]);
+
+/* Pegatinas ninja: premios dibujados por la propia app (no necesitan imagen).
+   Se guardan como "sticker:<id>" en el mismo registro que los demás premios. */
+const STICKERS = [
+  ["dragon", "🐉", "Dragón de fuego", "#ff7043"], ["katanas", "⚔️", "Katanas cruzadas", "#90a4ae"],
+  ["templo", "🏯", "Templo ninja", "#ef5350"], ["kimono", "🥋", "Kimono", "#42a5f5"],
+  ["ninja", "🥷", "Ninja sigiloso", "#5c6bc0"], ["panda", "🐼", "Panda guerrero", "#66bb6a"],
+  ["zorro", "🦊", "Zorro astuto", "#ffa726"], ["tigre", "🐅", "Tigre veloz", "#ffb300"],
+  ["aguila", "🦅", "Águila vigía", "#8d6e63"], ["serpiente", "🐍", "Serpiente verde", "#9ccc65"],
+  ["tortuga", "🐢", "Tortuga sabia", "#26a69a"], ["buho", "🦉", "Búho maestro", "#a1887f"],
+  ["rayo", "⚡", "Rayo", "#ffd600"], ["fuego", "🔥", "Fuego", "#ff5722"],
+  ["hielo", "❄️", "Hielo", "#4fc3f7"], ["ola", "🌊", "Ola gigante", "#29b6f6"],
+  ["tornado", "🌪️", "Tornado", "#b0bec5"], ["volcan", "🌋", "Volcán", "#e64a19"],
+  ["gema", "💎", "Gema mágica", "#26c6da"], ["corona", "👑", "Corona dorada", "#ffca28"],
+  ["copa", "🏆", "Copa de campeón", "#ffc107"], ["medalla", "🥇", "Medalla de oro", "#ffd54f"],
+  ["escudo", "🛡️", "Escudo", "#7986cb"], ["arco", "🏹", "Arco y flecha", "#a5d6a7"],
+  ["farol", "🏮", "Farolillo", "#ef5350"], ["bambu", "🎋", "Bambú", "#81c784"],
+  ["cerezo", "🌸", "Flor de cerezo", "#f48fb1"], ["ramen", "🍜", "Ramen", "#ffb74d"],
+  ["sushi", "🍣", "Sushi", "#ff8a65"], ["cometa", "🪁", "Cometa", "#4dd0e1"],
+  ["luna", "🌙", "Luna llena", "#7e57c2"], ["estrella", "🌟", "Estrella ninja", "#ffee58"],
+  ["cohete", "🚀", "Cohete", "#5c6bc0"], ["unicornio", "🦄", "Unicornio", "#ce93d8"],
+  ["dino", "🦖", "Dinosaurio", "#66bb6a"], ["robot", "🤖", "Robot", "#90a4ae"],
+];
+const STICKER_INFO = Object.fromEntries(STICKERS.map(([id, emoji, name, color]) => ["sticker:" + id, { emoji, name, color }]));
+PRIZES.push(...Object.keys(STICKER_INFO));
 const PRIZE_COUNT = PRIZES.length;
 
+const prizeName = p => STICKER_INFO[p]?.name || "";
+function prizeHTML(p) {
+  const s = STICKER_INFO[p];
+  return s
+    ? `<span class="sticker" style="--c:${s.color}" title="${esc(s.name)}"><span>${s.emoji}</span></span>`
+    : `<img src="${p}" alt="" loading="lazy" draggable="false">`;
+}
+
+/* `min` = premios ganados en total. Los cinturones antiguos conservan su mínimo
+   para que nadie baje de cinturón al actualizar. `bg` = dibujo si no es un color liso. */
 const BELTS = [
-  { name: "Blanco",   color: "#ffffff", min: 0 },
-  { name: "Amarillo", color: "#ffd600", min: 2 },
-  { name: "Naranja",  color: "#ff8f00", min: 4 },
-  { name: "Verde",    color: "#43a047", min: 7 },
-  { name: "Azul",     color: "#1e88e5", min: 10 },
-  { name: "Morado",   color: "#8e24aa", min: 14 },
-  { name: "Marrón",   color: "#6d4c41", min: 19 },
-  { name: "Negro",    color: "#212121", min: 25 },
-  { name: "Dorado",   color: "#ffd23f", min: 35 },
+  { name: "Blanco",    color: "#ffffff", min: 0 },
+  { name: "Amarillo",  color: "#ffd600", min: 2 },
+  { name: "Naranja",   color: "#ff8f00", min: 4 },
+  { name: "Verde",     color: "#43a047", min: 7 },
+  { name: "Azul",      color: "#1e88e5", min: 10 },
+  { name: "Turquesa",  color: "#00bfa5", min: 12 },
+  { name: "Morado",    color: "#8e24aa", min: 14 },
+  { name: "Rosa",      color: "#ec4f9c", min: 17 },
+  { name: "Marrón",    color: "#6d4c41", min: 19 },
+  { name: "Rojo",      color: "#d32f2f", min: 22 },
+  { name: "Negro",     color: "#212121", min: 25 },
+  { name: "Plata",     color: "#b0bec5", min: 30, bg: "linear-gradient(180deg, #f5f7f8, #90a4ae)" },
+  { name: "Dorado",    color: "#ffd23f", min: 35, bg: "linear-gradient(180deg, #fff3a6, #f5a800)" },
+  { name: "Rubí",      color: "#e0115f", min: 45, bg: "linear-gradient(135deg, #ff6f91, #b0003a)" },
+  { name: "Esmeralda", color: "#00c853", min: 55, bg: "linear-gradient(135deg, #69f0ae, #00796b)" },
+  { name: "Diamante",  color: "#81d4fa", min: 70, bg: "linear-gradient(135deg, #e1f5fe, #4fc3f7 50%, #e1f5fe)" },
+  { name: "Arcoíris",  color: "#ff4081", min: 90, bg: "linear-gradient(90deg, #e53935, #ff8f00, #ffd600, #43a047, #1e88e5, #8e24aa)" },
+  { name: "Dragón",    color: "#ff3d00", min: 120, bg: "linear-gradient(90deg, #212121, #ff3d00, #ffd600, #ff3d00, #212121)" },
 ];
+const beltBg = b => b.bg || b.color;
 
 const NINJA_COLORS = {
   red:    ["#e53935", "#a91f1c"],
@@ -86,6 +131,8 @@ const DEFAULT_SETTINGS = {
   customWords: [], onlyCustom: false, showPics: true,
   // números
   numMax: 10, numPics: true,
+  // voz ("" = automática)
+  voice: "", pitch: 1.1,
 };
 
 function loadSettings() {
@@ -118,6 +165,7 @@ for (const [dup, orig] of Object.entries(DUPLICATE_PRIZES)) {
 const STATS_DEFAULT = {
   stars: 0, bestStreak: 0, progress: 0, syllablesOk: 0, wordsRead: 0, wordsBuilt: 0,
   picturesOk: 0, missingOk: 0, countOk: 0, sumsOk: 0, subsOk: 0, hearOk: 0, matchOk: 0,
+  pairsOk: 0, yesNoOk: 0, spellOk: 0, seqOk: 0, bigOk: 0, orderOk: 0,
 };
 let stats = { ...STATS_DEFAULT, ...load("dojoStats", {}) };
 let wordStats = load("dojoWordStats", {});      // { palabra: { ok, fail } }
@@ -153,10 +201,28 @@ function play(id, volume = 1) {
   snd.play().catch(() => {});
 }
 
+/* Voces en español instaladas en el dispositivo: primero las de España (es-ES) */
 let esVoice = null;
+function spanishVoices() {
+  if (!("speechSynthesis" in window)) return [];
+  const isSpain = v => /^es[-_]ES/i.test(v.lang);
+  return speechSynthesis.getVoices()
+    .filter(v => /^es([-_]|$)/i.test(v.lang || ""))
+    .sort((a, b) => isSpain(b) - isSpain(a));
+}
 function pickVoice() {
-  const voices = speechSynthesis.getVoices();
-  esVoice = voices.find(v => v.lang === "es-ES") || voices.find(v => v.lang && v.lang.startsWith("es")) || null;
+  const voices = spanishVoices();
+  esVoice = voices.find(v => v.voiceURI === settings.voice) || voices[0] || null;
+  if (typeof renderVoices === "function") renderVoices();
+}
+
+/* Una sílaba suelta («to», «me», «do»…) hay voces que la leen en inglés o como
+   abreviatura. Con tilde («tó») la leen siempre como sílaba española. */
+const LONE_SYLLABLE = /^(?:ch|ll|qu|gu|[bcdfghjklmnñpqrstvwxyz])[aeiou]$/;
+const ACCENTED = { a: "á", e: "é", i: "í", o: "ó", u: "ú" };
+function sylSay(s) {
+  const t = String(s).toLowerCase().trim();
+  return LONE_SYLLABLE.test(t) ? t.slice(0, -1) + ACCENTED[t.slice(-1)] : t;
 }
 if ("speechSynthesis" in window) {
   pickVoice();
@@ -167,11 +233,11 @@ function speak(text, { rate } = {}) {
   if (!("speechSynthesis" in window) || !text) return Promise.resolve();
   speechSynthesis.cancel();
   return new Promise(resolve => {
-    const u = new SpeechSynthesisUtterance(String(text).toLowerCase());
+    const u = new SpeechSynthesisUtterance(sylSay(text));
     u.lang = "es-ES";
     if (esVoice) u.voice = esVoice;
     u.rate = rate || settings.rate;
-    u.pitch = 1.1;
+    u.pitch = settings.pitch || 1.1;
     const btn = $("listenBtn");
     u.onstart = () => btn.classList.add("talking");
     u.onend = u.onerror = () => { btn.classList.remove("talking"); resolve(); };
@@ -265,10 +331,38 @@ const beltIndex = (n = totalPrizes()) => BELTS.reduce((acc, b, i) => (n >= b.min
 function updateBelt() {
   const belt = BELTS[beltIndex()];
   document.documentElement.style.setProperty("--belt", belt.color);
-  $("beltBadge").innerHTML = `<i style="background:${belt.color}"></i><span>${belt.name}</span>`;
+  $("beltBadge").innerHTML = `<i style="background:${beltBg(belt)}"></i><span>${belt.name}</span>`;
   $("startBelt").textContent = `Cinturón ${belt.name} · ⭐ ${stats.stars}`;
   const owned = PRIZES.filter(p => unlocked[p]).length;
   $("menuPrizes").textContent = `${owned} de ${PRIZE_COUNT}`;
+}
+
+/* ---------------------------------------------------------
+   Medallas: logros que se ganan jugando (además de los premios)
+   --------------------------------------------------------- */
+const MEDALS = [
+  ...[10, 50, 100, 250, 500, 1000].map(n => ({ id: "stars" + n, ico: "⭐", name: `${n} estrellas`, ok: () => stats.stars >= n })),
+  ...[5, 10, 20].map(n => ({ id: "streak" + n, ico: "🔥", name: `Racha de ${n}`, ok: () => stats.bestStreak >= n })),
+  ...[
+    ["syllablesOk", "🚪", "Maestro de sílabas"], ["wordsRead", "🎤", "Gran lector"], ["wordsBuilt", "🧩", "Constructor"],
+    ["picturesOk", "🖼️", "Ojo de águila"], ["missingOk", "🔍", "Detective"], ["pairsOk", "🃏", "Memoria ninja"],
+    ["yesNoOk", "👍", "Juez sabio"], ["spellOk", "🔤", "Rey de las letras"], ["countOk", "🍎", "Contador"],
+    ["hearOk", "👂", "Oído fino"], ["matchOk", "🎯", "Puntería"], ["seqOk", "🐛", "Maestro de series"],
+    ["bigOk", "🐘", "Gigante"], ["orderOk", "🪜", "Ordenado"], ["sumsOk", "➕", "Sumador"], ["subsOk", "➖", "Restador"],
+  ].map(([key, ico, name]) => ({ id: key, ico, name, hint: "20 aciertos", ok: () => stats[key] >= 20 })),
+  ...[[10, "🎁", "Coleccionista"], [30, "🎒", "Gran colección"], [PRIZE_COUNT, "🏅", "¡Álbum completo!"]]
+    .map(([n, ico, name]) => ({ id: "prizes" + n, ico, name, hint: `${n} premios distintos`, ok: () => PRIZES.filter(p => unlocked[p]).length >= n })),
+];
+let medals = load("dojoMedals", []);
+
+/** Guarda las medallas recién conseguidas y las devuelve. */
+function checkMedals() {
+  const fresh = MEDALS.filter(m => !medals.includes(m.id) && m.ok());
+  if (fresh.length) {
+    medals = [...medals, ...fresh.map(m => m.id)];
+    save("dojoMedals", medals);
+  }
+  return fresh;
 }
 
 /* ---------------------------------------------------------
@@ -414,6 +508,11 @@ function scoreCorrect({ x, y, statKey, delay = 1500 } = {}) {
   } else {
     say(pick(PRAISE), "good");
   }
+  const [medal] = checkMedals();
+  if (medal) {
+    say(`¡Medalla nueva! ${medal.ico} ${esc(medal.name)}`, "good");
+    burst(innerWidth / 2, innerHeight / 3, ["🏅", "✨", medal.ico], 14);
+  }
 
   if (stats.progress >= settings.goal) later(startReward, Math.min(delay, 1200));
   else later(() => session.current?.next(), delay);
@@ -452,7 +551,7 @@ function startReward() {
   const ov = $("rewardOverlay");
   ov.classList.remove("opened");
   ov.hidden = false;
-  $("rewardImage").src = prize;
+  $("rewardPrize").innerHTML = prizeHTML(prize);
   $("newBadge").hidden = !isNew;
   $("rewardText").textContent = "¡Toca el regalo!";
   play("sndPrize");
@@ -463,7 +562,8 @@ function startReward() {
     opened = true;
     ov.classList.add("opened");
     confetti();
-    let text = isNew ? "¡Premio nuevo!" : "¡Otro premio!";
+    const name = prizeName(prize);
+    let text = (isNew ? "¡Premio nuevo!" : "¡Otro premio!") + (name ? ` ${name}` : "");
     if (beltAfter > beltBefore) text = `¡Ahora eres cinturón ${BELTS[beltAfter].name}! 🥋`;
     updateBelt();
     $("rewardText").textContent = text;
@@ -544,14 +644,20 @@ function renderAlbum() {
   const total = totalPrizes();
   const next = BELTS[bi + 1];
   $("beltPath").innerHTML =
-    BELTS.map((b, i) => `<span class="beltStep ${i <= bi ? "done" : ""} ${i === bi ? "current" : ""}" style="background:${b.color}" title="Cinturón ${b.name}"></span>`).join("") +
-    `<span class="beltNext">${next ? `Faltan ${next.min - total} premios para el ${next.name}` : "¡Eres un gran maestro ninja!"}</span>`;
+    BELTS.map((b, i) => `<span class="beltStep ${i <= bi ? "done" : ""} ${i === bi ? "current" : ""}" style="background:${beltBg(b)}" title="Cinturón ${b.name} (${b.min} premios)"></span>`).join("") +
+    `<span class="beltNext">Cinturón ${BELTS[bi].name}. ${next ? `Faltan ${next.min - total} premios para el ${next.name}` : "¡Eres un gran maestro ninja!"}</span>`;
 
   $("albumGrid").innerHTML = PRIZES.map(p => {
     const n = unlocked[p] || 0;
     return `<div class="albumItem ${n ? "" : "locked"}">
-      <img src="${p}" alt="" loading="lazy" draggable="false">
+      ${prizeHTML(p)}
       ${n > 1 ? `<span class="count">x${n}</span>` : ""}
     </div>`;
   }).join("");
+
+  checkMedals();
+  const got = MEDALS.filter(m => medals.includes(m.id)).length;
+  $("medalCount").textContent = `🏅 Medallas: ${got} de ${MEDALS.length}`;
+  $("medalGrid").innerHTML = MEDALS.map(m =>
+    `<span class="medal ${medals.includes(m.id) ? "" : "locked"}" title="${esc(m.hint || m.name)}"><i>${m.ico}</i>${esc(m.name)}</span>`).join("");
 }

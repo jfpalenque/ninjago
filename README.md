@@ -12,12 +12,18 @@ Funciona sin conexión y se puede instalar en el móvil o la tablet (PWA).
 | 🧩 **Construye** | Se oye la palabra y hay que ordenar sus sílabas. |
 | 🖼️ **Palabra y dibujo** | Se ve una palabra escrita (sin oírla) y hay que leerla y tocar su dibujo. Uno de los dibujos falsos empieza por la misma letra, para que lea la palabra entera. |
 | 🔍 **¿Qué falta?** | A la palabra le falta una sílaba y hay que elegir la que completa el hueco. |
+| 🃏 **Parejas** | Juego de memoria: se enseñan las cartas un momento y hay que juntar cada palabra con su dibujo. |
+| 👍 **¿Sí o no?** | Un dibujo y una palabra escrita: ¿pone lo mismo que el dibujo? |
+| 🔤 **Letras** | Como «Construye», pero letra a letra (palabras de hasta 7 letras). |
 | 🍎 **Contar** | ¿Cuántos hay? Tocando los dibujos se numeran y se oye el número. |
 | 👂 **¿Qué número?** | Se oye un número y hay que tocarlo entre cuatro. |
 | 🎯 **Busca el grupo** | Se ve un número y hay que elegir el grupo de dibujos que tiene esa cantidad. |
+| 🐛 **Series** | Cuatro números seguidos con un hueco (a veces hacia atrás, y de 2 en 2 si se cuenta hasta 20). |
+| 🐘 **Mayor o menor** | Tres números: hay que tocar el mayor (🐘) o el menor (🐭). |
+| 🪜 **Ordena** | Tocar cuatro números del menor al mayor. |
 | ➕ **Sumas** | Dos grupos de dibujos para juntar y contar (2 + 3 = ?). |
 | ➖ **Restas** | Los dibujos que se van aparecen tachados (5 − 2 = ?). |
-| 🏆 **Mis premios** | Álbum de premios y cinturones (del blanco al dorado). |
+| 🏆 **Mis premios** | Álbum con 66 premios (30 imágenes y 36 pegatinas ninja), 18 cinturones (del blanco al Dragón) y 28 medallas por logros (estrellas, rachas, 20 aciertos en cada juego…). |
 | 📊 **Mi progreso** | Estadísticas para mayores: palabras que cuestan y palabras dominadas. |
 
 Cada acierto suma una ⭐. Al llenar la barra se gana un premio sorpresa y salen globos para explotar.
@@ -29,7 +35,10 @@ Cada acierto suma una ⭐. Al llenar la barra se gana un premio sorpresa y salen
 - **Mostrar los dibujos** en «Lee la palabra», «Construye» y «¿Qué falta?». Si se quitan, sale una «?» y el dibujo aparece al acertar, para que el niño lea sin adivinar por el dibujo.
 - **Mis palabras**: añade las tuyas (su nombre, `a-bue-la`…) con un emoji. Se separan en sílabas automáticamente.
 - **Números**: contar y calcular hasta 5, 10 o 20, y si se muestran dibujos de ayuda en sumas y restas.
-- Mayúsculas o minúsculas, velocidad de la voz, color del ninja y sonido.
+- **Voz**: se puede elegir entre las voces en español que tenga el dispositivo (primero las de España), el tono (grave, normal o aguda) y la velocidad, y probarla con «🔊 Probar la voz». Para tener más voces hay que instalarlas en los ajustes de texto a voz del sistema.
+- Mayúsculas o minúsculas, color del ninja y sonido.
+
+Las sílabas sueltas se dicen con tilde (`to` → `tó`): así ninguna voz las lee en inglés o como abreviatura.
 
 ## Probarlo en local
 
@@ -46,15 +55,18 @@ Si no está disponible, aparecen los botones «✅ ¡Bien leído!» y «🔁 Otr
 ```
 index.html            pantallas y diálogos
 css/index.css         estilos y animaciones
-js/core.js            datos guardados, voz, mascota, efectos, puntuación y premios
+js/core.js            datos guardados, voz, mascota, efectos, puntuación, premios, cinturones y medallas
 js/words.js           lista de palabras, separación en sílabas y comparación de lo leído
 js/game-syllables.js  juego de sílabas
 js/game-read.js       juego de lectura con micrófono
 js/game-build.js      juego de construir palabras
 js/game-picture.js    juego de palabra y dibujo
 js/game-missing.js    juego de ¿qué falta?
-js/game-numbers.js    juego de números (contar, qué número, busca el grupo, sumas y restas)
+js/game-pairs.js      juego de parejas (memoria)
+js/game-yesno.js      juego de ¿sí o no?
+js/game-spell.js      juego de letras
+js/game-numbers.js    juego de números (contar, qué número, busca el grupo, series, mayor o menor, ordena, sumas y restas)
 js/screen-progress.js pantalla de progreso
-js/app.js             navegación (#menu, #silabas, #leer, #construir, #dibujo, #falta, #contar, #numero, #grupos, #sumar, #restar, #progreso) y ajustes
+js/app.js             navegación (#menu, #progreso y una ruta por juego: ver ROUTES) y ajustes
 sw.js                 modo sin conexión
 ```

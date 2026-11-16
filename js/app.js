@@ -3,19 +3,24 @@
    ========================================================= */
 "use strict";
 
-const GAMES = { silabas: SyllableGame, leer: ReadGame, construir: BuildGame, dibujo: PictureGame, falta: MissingGame, numeros: NumberGame };
+const GAMES = {
+  silabas: SyllableGame, leer: ReadGame, construir: BuildGame, dibujo: PictureGame, falta: MissingGame,
+  parejas: PairsGame, sino: YesNoGame, letras: SpellGame, numeros: NumberGame,
+};
 /* Rutas que abren un juego (algunas con un modo concreto) */
 const ROUTES = {
   silabas: [SyllableGame], leer: [ReadGame], construir: [BuildGame], dibujo: [PictureGame], falta: [MissingGame],
+  parejas: [PairsGame], sino: [YesNoGame], letras: [SpellGame],
   contar: [NumberGame, "count"], numero: [NumberGame, "hear"], grupos: [NumberGame, "match"],
+  serie: [NumberGame, "seq"], mayor: [NumberGame, "big"], ordenar: [NumberGame, "order"],
   sumar: [NumberGame, "add"], restar: [NumberGame, "sub"],
 };
-const WORD_GAMES = [ReadGame, BuildGame, PictureGame, MissingGame];
+const WORD_GAMES = [ReadGame, BuildGame, PictureGame, MissingGame, PairsGame, YesNoGame, SpellGame];
 const resetDecks = () => WORD_GAMES.forEach(g => g.deck.reset());
 const SCREENS = ["menuScreen", "game", "progressScreen"];
 
 /* ---------------------------------------------------------
-   Navegación (#menu, #silabas, #leer, #construir, #dibujo, #falta, #contar, #numero, #grupos, #sumar, #restar, #progreso)
+   Navegación: #menu, #progreso y una ruta por juego (las claves de ROUTES)
    El botón «atrás» del navegador/móvil también funciona.
    --------------------------------------------------------- */
 function showScreen(id) {
@@ -57,7 +62,7 @@ function route() {
 }
 
 /* Pone o quita los dibujos de las palabras en la pantalla actual */
-const PIC_IDS = { leer: "readEmoji", construir: "buildEmoji", falta: "missEmoji" };
+const PIC_IDS = { leer: "readEmoji", construir: "buildEmoji", falta: "missEmoji", letras: "spellEmoji" };
 function applyShowPics() {
   $("picBtn").textContent = settings.showPics ? "🖼️" : "🙈";
   $("picBtn").classList.toggle("off", !settings.showPics);
@@ -69,8 +74,10 @@ function applyShowPics() {
 function restartGameIfPlaying(id) {
   const g = session.current;
   if (!g || session.rewardActive || document.querySelector(".balloon")) return;
-  if (!id || g.id === id) g.next();
+  if (!id || g.id === id) restartRound(g);
 }
+/* Ronda nueva (en «Parejas», tablero nuevo aunque queden cartas) */
+const restartRound = g => (g.restart ? g.restart() : g.next());
 
 /* ---------------------------------------------------------
    Ajustes
@@ -208,19 +215,21 @@ function setupSettings() {
   const redrawWords = () => {
     if (session.current === ReadGame && ReadGame.word) $("readWord").innerHTML = wordHTML(ReadGame.word);
     if (session.current === PictureGame && PictureGame.word) $("picWord").innerHTML = wordHTML(PictureGame.word);
+    if (session.current === YesNoGame && YesNoGame.shown) $("ynWord").innerHTML = wordHTML(YesNoGame.shown);
   };
   bindCheck("optChangeOnFail", "changeOnFail");
   bindCheck("optSameVowel", "sameVowel", () => restartGameIfPlaying("silabas"));
   bindCheck("optLowercase", "lowercase", () => {
     SyllableGame.refreshLabels();
     redrawWords();
-    if ([BuildGame, PictureGame, MissingGame].includes(session.current)) session.current.next();
+    if ([BuildGame, PictureGame, MissingGame, PairsGame, SpellGame, NumberGame].includes(session.current)) restartGameIfPlaying();
   });
   bindCheck("optSound", "sound", renderHud);
   bindCheck("optShowSyl", "showSyllables", redrawWords);
   bindCheck("optShowPics", "showPics", applyShowPics);
-  bindCheck("optBuildHint", "buildHint", () => restartGameIfPlaying("construir"));
-  bindCheck("optBuildExtra", "buildExtra", () => restartGameIfPlaying("construir"));
+  const restartBuilders = () => { restartGameIfPlaying("construir"); restartGameIfPlaying("letras"); };
+  bindCheck("optBuildHint", "buildHint", restartBuilders);
+  bindCheck("optBuildExtra", "buildExtra", restartBuilders);
   bindCheck("optOnlyCustom", "onlyCustom", () => { renderLevelInfo(); resetDecks(); });
   bindCheck("optNumPics", "numPics", () => restartGameIfPlaying("numeros"));
 
@@ -228,9 +237,43 @@ function setupSettings() {
   rate.value = settings.rate;
   rate.onchange = () => { settings.rate = Number(rate.value); saveSettings(); speak("Hola, ninja"); };
 
+  setupVoice();
   setupCustomWords();
   renderCustomWords();
   $("versionBox").textContent = "Versión " + APP_VERSION;
+}
+
+/* ---------------------------------------------------------
+   Voz: lista de voces en español del dispositivo, tono y prueba
+   --------------------------------------------------------- */
+function renderVoices() {
+  const sel = $("voiceSel");
+  if (!sel) return;
+  const voices = spanishVoices();
+  const label = v => `${v.name.replace(/^(Microsoft|Google)\s+/i, "")} (${/^es[-_]ES/i.test(v.lang) ? "España" : v.lang})`;
+  sel.innerHTML = `<option value="">Automática${voices[0] ? ` — ${esc(label(voices[0]))}` : ""}</option>` +
+    voices.map(v => `<option value="${esc(v.voiceURI)}">${esc(label(v))}</option>`).join("");
+  sel.value = voices.some(v => v.voiceURI === settings.voice) ? settings.voice : "";
+  $("voiceInfo").textContent = voices.length
+    ? `${voices.length} ${voices.length === 1 ? "voz" : "voces"} en español en este dispositivo. Para tener más, instala voces de «Español (España)» en los ajustes de texto a voz del sistema.`
+    : "Este dispositivo no tiene voces en español. Instala una de «Español (España)» en los ajustes de texto a voz del sistema.";
+}
+
+function testVoice() {
+  // «to» suelta es la sílaba que algunas voces leen mal
+  speak("to").then(() => speak("Tomate. Pato. ¡Hola, ninja!"));
+}
+
+function setupVoice() {
+  renderVoices();
+  $("voiceSel").onchange = e => {
+    settings.voice = e.target.value;
+    saveSettings();
+    pickVoice();
+    testVoice();
+  };
+  setupSegmented("pitchSeg", "pitch", Number, testVoice);
+  $("voiceTestBtn").onclick = testVoice;
 }
 
 /* ---------------------------------------------------------
@@ -262,6 +305,8 @@ function setupDialogs() {
     if (!confirm("¿Borrar estrellas, rachas y estadísticas de palabras? (Los premios se mantienen)")) return;
     stats = { ...STATS_DEFAULT };
     wordStats = {};
+    medals = [];
+    save("dojoMedals", medals);
     saveStats();
     save("dojoWordStats", wordStats);
     renderProgressScreen();
@@ -278,6 +323,7 @@ function init() {
   $("mascot").innerHTML = mascotSVG();
   $("startMascot").innerHTML = mascotSVG();
   updateBelt();
+  checkMedals();                   // las que ya tenía ganadas no se anuncian de golpe
   setupSettings();
   setupDialogs();
 
@@ -301,6 +347,9 @@ function init() {
   $("manualRetry").onclick = () => ReadGame.manualRetry();
   $("skipWordBtn").onclick = () => ReadGame.skip();
   $("skipBuildBtn").onclick = () => BuildGame.skip();
+  $("skipSpellBtn").onclick = () => SpellGame.skip();
+  $("ynYes").onclick = e => YesNoGame.answer(true, e.currentTarget);
+  $("ynNo").onclick = e => YesNoGame.answer(false, e.currentTarget);
 
   // Teclado: números para elegir, espacio para escuchar, Enter para el micro
   document.addEventListener("keydown", e => {

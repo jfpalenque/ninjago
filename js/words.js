@@ -12,6 +12,10 @@ const WORD_LEVELS = {
     ["cama", "🛏️"], ["moto", "🏍️"], ["bota", "👢"], ["lupa", "🔍"], ["kiwi", "🥝"], ["coco", "🥥"],
     ["foto", "📷"], ["rosa", "🌹"], ["seta", "🍄"], ["bebé", "👶"], ["sofá", "🛋️"], ["hada", "🧚"],
     ["ropa", "👕"], ["boca", "👄"], ["papá", "👨"], ["mamá", "👩"], ["vaso", "🥛"], ["pie", "🦶"],
+    ["ajo", "🧄"], ["ojo", "👁️"], ["ola", "🌊"], ["toro", "🐂"], ["pavo", "🦃"], ["loro", "🦜"],
+    ["rata", "🐀"], ["mapa", "🗺️"], ["rayo", "⚡"], ["hoja", "🍁"], ["pila", "🔋"], ["vela", "🕯️"],
+    ["copa", "🏆"], ["silla", "🪑"], ["llave", "🔑"], ["coche", "🚗"], ["pollo", "🐤"], ["queso", "🧀"],
+    ["dedo", "☝️"], ["pino", "🌲"], ["cubo", "🪣"], ["gorra", "🧢"], ["zorro", "🦊"], ["búho", "🦉"],
   ],
   2: [
     ["pelota", "⚽"], ["zapato", "👞"], ["tomate", "🍅"], ["paloma", "🕊️"], ["conejo", "🐰"], ["camello", "🐫"],
@@ -20,6 +24,10 @@ const WORD_LEVELS = {
     ["regalo", "🎁"], ["muñeca", "🪆"], ["botella", "🍾"], ["cuchara", "🥄"], ["tortuga", "🐢"], ["jirafa", "🦒"],
     ["abeja", "🐝"], ["ratón", "🐭"], ["limón", "🍋"], ["melón", "🍈"], ["león", "🦁"], ["avión", "✈️"],
     ["pirata", "🏴‍☠️"], ["helado", "🍦"], ["sirena", "🧜‍♀️"], ["payaso", "🤡"], ["gusano", "🐛"], ["caracol", "🐌"],
+    ["oveja", "🐑"], ["cebolla", "🧅"], ["cometa", "🪁"], ["mochila", "🎒"], ["anillo", "💍"], ["oreja", "👂"],
+    ["araña", "🕷️"], ["koala", "🐨"], ["gorila", "🦍"], ["águila", "🦅"], ["piano", "🎹"], ["zapatilla", "👟"],
+    ["tijeras", "✂️"], ["patinete", "🛴"], ["lechuga", "🥬"], ["aguacate", "🥑"], ["chocolate", "🍫"], ["bocadillo", "🥪"],
+    ["palomitas", "🍿"], ["tenedor", "🍴"], ["semáforo", "🚦"], ["bañera", "🛁"], ["mariquita", "🐞"], ["hipopótamo", "🦛"],
   ],
   3: [
     ["sol", "☀️"], ["flor", "🌼"], ["tren", "🚂"], ["pez", "🐟"], ["árbol", "🌳"], ["fresa", "🍓"],
@@ -27,8 +35,15 @@ const WORD_LEVELS = {
     ["cerdo", "🐷"], ["perro", "🐶"], ["delfín", "🐬"], ["tiburón", "🦈"], ["elefante", "🐘"], ["mariposa", "🦋"],
     ["dinosaurio", "🦕"], ["estrella", "⭐"], ["bicicleta", "🚲"], ["pingüino", "🐧"], ["cocodrilo", "🐊"], ["castillo", "🏰"],
     ["sandía", "🍉"], ["guitarra", "🎸"], ["trompeta", "🎺"], ["princesa", "👸"], ["ninja", "🥷"], ["espada", "🗡️"],
-    ["escudo", "🛡️"], ["planeta", "🪐"], ["cangrejo", "🦀"], ["murciélago", "🦇"], ["búho", "🦉"], ["arcoíris", "🌈"],
+    ["escudo", "🛡️"], ["planeta", "🪐"], ["cangrejo", "🦀"], ["murciélago", "🦇"], ["arcoíris", "🌈"],
     ["fantasma", "👻"], ["robot", "🤖"], ["camión", "🚚"],
+    ["pan", "🍞"], ["miel", "🍯"], ["maíz", "🌽"], ["rey", "🤴"], ["zanahoria", "🥕"], ["manzana", "🍎"],
+    ["naranja", "🍊"], ["barco", "⛵"], ["tractor", "🚜"], ["autobús", "🚌"], ["tambor", "🥁"], ["violín", "🎻"],
+    ["campana", "🔔"], ["lápiz", "✏️"], ["paraguas", "☂️"], ["sombrero", "🎩"], ["guante", "🧤"], ["calcetín", "🧦"],
+    ["vestido", "👗"], ["reloj", "⌚"], ["teléfono", "📱"], ["puerta", "🚪"], ["escoba", "🧹"], ["martillo", "🔨"],
+    ["hueso", "🦴"], ["diente", "🦷"], ["corazón", "❤️"], ["fuego", "🔥"], ["nieve", "❄️"], ["volcán", "🌋"],
+    ["montaña", "⛰️"], ["isla", "🏝️"], ["hormiga", "🐜"], ["panda", "🐼"], ["ardilla", "🐿️"], ["canguro", "🦘"],
+    ["cisne", "🦢"], ["unicornio", "🦄"], ["tarta", "🎂"], ["huevo", "🥚"], ["cabra", "🐐"], ["bombero", "🧑‍🚒"],
   ],
 };
 

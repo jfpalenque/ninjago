@@ -133,7 +133,7 @@ const SyllableGame = {
       session.locked = true;
       restartAnim(el, "wrong");
       scoreWrong();
-      speak(`Esa es ${syl}. Busca: ${this.correct}`);
+      speak(`Esa es ${sylSay(syl)}. Busca: ${sylSay(this.correct)}`);
       later(() => {
         el.classList.remove("wrong");
         if (settings.changeOnFail) this.next();
