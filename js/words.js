@@ -122,22 +122,57 @@ function wordPool() {
   return [...base.map(([w, e]) => makeWord(w, e)), ...custom];
 }
 
-/* Baraja sin repeticiones hasta agotar todas las palabras */
+/* Baraja sin repeticiones hasta agotar todas las palabras.
+   Con el repaso inteligente, las palabras que cuestan salen dos veces en cada
+   vuelta y la que se acaba de fallar vuelve a salir un par de rondas después. */
 function makeDeck() {
   let deck = [], last = "";
   return {
     next() {
       if (!deck.length) {
         deck = shuffle(wordPool());
+        if (settings.smartReview && deck.length > 3) {
+          const hard = deck.filter(w => isHard(wordStats[w.word])).slice(0, Math.ceil(deck.length / 4));
+          hard.forEach(w => deck.splice(Math.floor(Math.random() * (deck.length + 1)), 0, w));
+          // que la misma no salga dos veces seguidas
+          for (let i = 1; i < deck.length; i++) {
+            if (deck[i].word === deck[i - 1].word && i + 1 < deck.length) [deck[i], deck[i + 1]] = [deck[i + 1], deck[i]];
+          }
+        }
         if (deck.length > 1 && deck[deck.length - 1].word === last) deck.unshift(deck.pop());
       }
       const w = deck.pop();
       last = w.word;
       return w;
     },
+    retry(text) {
+      if (!settings.smartReview || deck.slice(-4).some(w => w.word === text)) return;
+      const w = wordPool().find(x => x.word === text);
+      if (w) deck.splice(Math.max(0, deck.length - 2), 0, w);
+    },
     reset() { deck = []; },
   };
 }
+
+/* ---------------------------------------------------------
+   Frases cortas: [frase, dibujos, nivel]
+   --------------------------------------------------------- */
+const SENTENCES = [
+  ["El oso come miel", "🐻🍯", 1], ["La vaca da leche", "🐮🥛", 1], ["El gato toma sopa", "🐱🍲", 1],
+  ["El mono come una banana", "🐒🍌", 1], ["El loro tiene una pera", "🦜🍐", 1], ["El oso va en moto", "🐻🏍️", 1],
+  ["El lobo mira la luna", "🐺🌙", 1], ["El bebé tiene un dado", "👶🎲", 1], ["El pato come uvas", "🦆🍇", 1],
+  ["El gato sube a la cama", "🐱🛏️", 1], ["La rana tiene una bota", "🐸👢", 1], ["El mono tiene una gorra", "🐒🧢", 1],
+  ["La mamá toma un café", "👩☕", 1], ["El papá lee un libro", "👨📖", 2], ["El zorro come queso", "🦊🧀", 1],
+  ["El ratón come queso", "🐭🧀", 2], ["El perro tiene un hueso", "🐶🦴", 2], ["El conejo come zanahoria", "🐰🥕", 2],
+  ["La abeja va a la flor", "🐝🌼", 2], ["El perro va en coche", "🐶🚗", 2], ["El niño come una galleta", "👦🍪", 2],
+  ["La niña tiene un globo", "👧🎈", 2], ["La gallina pone un huevo", "🐔🥚", 2], ["El caballo come una manzana", "🐴🍎", 2],
+  ["La tortuga come tomate", "🐢🍅", 2], ["El león lleva una corona", "🦁👑", 2], ["El papá va en tren", "👨🚂", 2],
+  ["La jirafa come una hoja", "🦒🍁", 2], ["El cerdo come maíz", "🐷🌽", 2], ["El niño juega con la pelota", "👦⚽", 2],
+  ["El ninja tiene una espada", "🥷🗡️", 3], ["El robot toca la guitarra", "🤖🎸", 3], ["La princesa vive en un castillo", "👸🏰", 3],
+  ["El pingüino come un pez", "🐧🐟", 3], ["El dragón echa fuego", "🐉🔥", 3], ["El elefante lleva un sombrero", "🐘🎩", 3],
+  ["El pulpo toca el tambor", "🐙🥁", 3], ["El tigre va en bicicleta", "🐯🚲", 3], ["El fantasma tiene un globo", "👻🎈", 3],
+  ["El cocodrilo come una sandía", "🐊🍉", 3], ["La mariposa va a la flor", "🦋🌼", 3], ["El dinosaurio mira la estrella", "🦕⭐", 3],
+].map(([text, pic, lvl]) => ({ text, pic, lvl }));
 
 /* Dibujo de la palabra. Con «Mostrar los dibujos» desactivado se ve una «?»
    y el dibujo se descubre al acertar: así el niño lee sin adivinar por el dibujo. */

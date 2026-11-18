@@ -88,8 +88,7 @@ const BuildGame = {
       play("sndWrong", .5);
       mascotReact("sad");
       say(this.filled === 0 ? "¿Con qué sílaba empieza? 🤔" : "Esa no va ahora. ¡Escucha! 👂", "bad");
-      session.streak = 0;
-      renderHud();
+      noteFail();
       if (this.mistakes >= 2) later(() => speak(needed), 400);
       if (this.mistakes >= 4) $("skipBuildBtn").classList.add("show");
     }

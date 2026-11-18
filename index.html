@@ -5,7 +5,7 @@
 <title>Dojo Ninja</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1b1446">
-<meta name="description" content="Juego educativo para aprender a leer y a contar: sílabas, lectura con micrófono, construir palabras, parejas, números, series, sumas, restas y premios.">
+<meta name="description" content="Juego educativo para aprender a leer, escribir y contar: sílabas, trazar letras, lectura con micrófono, frases, números, reloj, monedas, mapa de aventura, misión diaria y premios.">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="img/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="img/icon-192.png">
@@ -41,14 +41,32 @@
 <!-- ============ MENÚ PRINCIPAL ============ -->
 <section id="menuScreen" class="screen" data-screen="menu">
   <button class="hudBtn cornerBtn" data-open-settings aria-label="Ajustes para mayores" title="Ajustes para mayores">⚙️</button>
+  <button id="profileBtn" class="profileBtn" aria-label="Cambiar de jugador" title="¿Quién juega?"></button>
   <h1 class="title">Dojo <span>Ninja</span></h1>
   <div class="menuHero">
-    <div id="startMascot" class="mascotHolder big"></div>
+    <button class="heroMascot" data-open-shop aria-label="Vestir a mi ninja" title="Vestir a mi ninja">
+      <span id="startMascot" class="mascotHolder big"></span>
+      <span class="heroTag">👕 Vísteme</span>
+    </button>
     <p id="startBelt" class="startBelt"></p>
   </div>
+
+  <div id="missionBox" class="missionBox">
+    <div class="missionHead">
+      <b id="missionTitle"></b>
+      <button id="streakBtn" class="streakChip" data-open-calendar aria-label="Ver el calendario" title="Días seguidos jugando"></button>
+    </div>
+    <div id="missionTasks" class="missionTasks"></div>
+  </div>
+
+  <nav class="menuGrid" aria-label="Aventura">
+    <a href="#mapa" class="menuCard cMap wide"><span class="ico">🗺️</span><b>Mapa de aventura</b><small>Sube hasta el templo</small></a>
+  </nav>
+
   <h2 class="menuSection">📖 Aprende a leer</h2>
   <nav class="menuGrid" aria-label="Juegos de lectura">
     <a href="#silabas" class="menuCard c1"><span class="ico">🚪</span><b>Sílabas</b><small>Escucha y abre la puerta</small></a>
+    <a href="#trazar" class="menuCard c19"><span class="ico">✍️</span><b>Trazar letras</b><small>Repasa con el dedo</small></a>
     <a href="#leer" class="menuCard c2"><span class="ico">🎤</span><b>Lee la palabra</b><small>Léela en voz alta</small></a>
     <a href="#construir" class="menuCard c3"><span class="ico">🧩</span><b>Construye</b><small>Ordena las sílabas</small></a>
     <a href="#dibujo" class="menuCard c6"><span class="ico">🖼️</span><b>Palabra y dibujo</b><small>Lee y toca su dibujo</small></a>
@@ -56,6 +74,7 @@
     <a href="#parejas" class="menuCard c13"><span class="ico">🃏</span><b>Parejas</b><small>Palabra con su dibujo</small></a>
     <a href="#sino" class="menuCard c14"><span class="ico">👍</span><b>¿Sí o no?</b><small>¿Pone lo del dibujo?</small></a>
     <a href="#letras" class="menuCard c15"><span class="ico">🔤</span><b>Letras</b><small>Escribe la palabra</small></a>
+    <a href="#frases" class="menuCard c20"><span class="ico">📜</span><b>Frases</b><small>Lee y toca su dibujo</small></a>
   </nav>
 
   <h2 class="menuSection">🔢 Números</h2>
@@ -66,10 +85,14 @@
     <a href="#serie" class="menuCard c16"><span class="ico">🐛</span><b>Series</b><small>¿Qué número falta?</small></a>
     <a href="#mayor" class="menuCard c17"><span class="ico">🐘</span><b>Mayor o menor</b><small>¿Cuál es más grande?</small></a>
     <a href="#ordenar" class="menuCard c18"><span class="ico">🪜</span><b>Ordena</b><small>Del menor al mayor</small></a>
+    <a href="#formas" class="menuCard c21"><span class="ico">🔷</span><b>Formas</b><small>Formas y colores</small></a>
+    <a href="#reloj" class="menuCard c22"><span class="ico">🕒</span><b>El reloj</b><small>¿Qué hora es?</small></a>
+    <a href="#monedas" class="menuCard c23"><span class="ico">🪙</span><b>Monedas</b><small>¿Cuánto dinero hay?</small></a>
   </nav>
   <nav class="menuGrid" aria-label="Sumas y restas">
     <a href="#sumar" class="menuCard c9"><span class="ico">➕</span><b>Sumas</b><small>Junta y cuenta</small></a>
     <a href="#restar" class="menuCard c10"><span class="ico">➖</span><b>Restas</b><small>Quita y cuenta</small></a>
+    <a href="#dobles" class="menuCard c24 wide"><span class="ico">✌️</span><b>Dobles y mitades</b><small>Dos veces o partir en dos</small></a>
   </nav>
 
   <nav class="menuGrid" aria-label="Premios y progreso">
@@ -82,7 +105,7 @@
 <main id="game" data-screen="game" hidden>
 
   <header id="hud">
-    <a href="#menu" class="hudBtn" aria-label="Volver al menú" title="Menú">🏠</a>
+    <a href="#menu" id="homeBtn" class="hudBtn" aria-label="Volver" title="Volver">🏠</a>
     <div class="hudStat" title="Estrellas conseguidas"><span>⭐</span><b id="starCount">0</b></div>
     <div class="hudStat streak" id="streakBox" title="Racha de aciertos"><span>🔥</span><b id="streakCount">0</b></div>
     <div id="beltBadge" class="beltBadge" title="Tu cinturón"></div>
@@ -98,7 +121,7 @@
   <section id="stage">
     <div id="mascotRow">
       <div id="mascot" class="mascotHolder"></div>
-      <div id="bubble" class="bubble">¿Qué sílaba oyes?</div>
+      <div id="bubble" class="bubble" role="status" aria-live="polite">¿Qué sílaba oyes?</div>
       <button id="listenBtn" class="listenBtn" aria-label="Escuchar">🔊<span>Escuchar</span></button>
     </div>
 
@@ -125,6 +148,7 @@
           <button id="manualRetry" class="smallBtn primary">🔁 Otra vez</button>
         </div>
       </div>
+      <button id="recBtn" class="recBtn" hidden>⏺️ Grábate y escúchate</button>
       <button id="skipWordBtn" class="skipBtn">Saltar ⏭</button>
     </div>
 
@@ -182,6 +206,26 @@
       <button id="skipSpellBtn" class="skipBtn">Saltar ⏭</button>
     </div>
 
+    <!-- Trazar letras -->
+    <div id="viewTrace" class="view" hidden>
+      <div id="traceWrap" class="traceWrap">
+        <canvas id="traceCanvas" aria-label="Letra para repasar con el dedo"></canvas>
+      </div>
+      <div id="traceHint" class="traceHint"></div>
+      <div class="traceBtns">
+        <button id="traceClear" class="skipBtn solid">🧽 Borrar</button>
+        <button id="traceSkip" class="skipBtn">Saltar ⏭</button>
+      </div>
+    </div>
+
+    <!-- Frases -->
+    <div id="viewSentence" class="view" hidden>
+      <div id="sentCard" class="wordCard">
+        <div id="sentText" class="sentText"></div>
+      </div>
+      <div id="sentOptions" class="sentOptions"></div>
+    </div>
+
     <!-- Números: contar, sumar y restar -->
     <div id="viewNumbers" class="view" hidden>
       <div id="numCard" class="wordCard numCard">
@@ -202,8 +246,23 @@
   </header>
   <div id="statCards" class="statCards"></div>
   <div class="infoPanel">
+    <h3>📈 Aciertos por semana</h3>
+    <div id="weekChart" class="weekChart"></div>
+    <p class="muted small">Debajo de cada semana, el porcentaje de acierto.</p>
+  </div>
+  <div class="infoPanel">
+    <h3>🎯 Acierto por juego</h3>
+    <div id="gameRows" class="gameRows"></div>
+    <p class="muted small">El porcentaje y el tiempo se cuentan desde la versión 4.0.</p>
+  </div>
+  <div class="infoPanel">
     <h3>😅 Palabras que más cuestan</h3>
     <div id="hardWords" class="wordChips"></div>
+    <p class="muted small">Con el repaso inteligente activado salen más a menudo.</p>
+  </div>
+  <div class="infoPanel">
+    <h3>🚪 Sílabas que más cuestan</h3>
+    <div id="hardSyls" class="wordChips"></div>
   </div>
   <div class="infoPanel">
     <h3>🏅 Palabras dominadas</h3>
@@ -212,6 +271,16 @@
   <div class="infoPanel center">
     <button id="resetStatsBtn" class="smallBtn danger">Borrar estadísticas</button>
   </div>
+</section>
+
+<!-- ============ MAPA DE AVENTURA ============ -->
+<section id="mapScreen" class="page mapPage" data-screen="mapa" hidden>
+  <header class="pageHead">
+    <a href="#menu" class="hudBtn" aria-label="Volver al menú">🏠</a>
+    <h2>🗺️ Camino al templo</h2>
+    <span id="mapTotal" class="mapTotal"></span>
+  </header>
+  <div id="mapPath" class="mapPath"></div>
 </section>
 
 <!-- ============ PREMIO ============ -->
@@ -241,6 +310,58 @@
     <button id="resetRewardsBtn" class="smallBtn danger">Borrar premios</button>
     <button class="smallBtn primary" data-close>Cerrar</button>
   </div>
+</dialog>
+
+<!-- ============ ¿QUIÉN JUEGA? ============ -->
+<dialog id="profileDialog" class="dialog">
+  <button class="closeX" data-close aria-label="Cerrar">✕</button>
+  <h2>👋 ¿Quién juega?</h2>
+  <p class="muted">Cada ninja tiene sus premios, su progreso y sus ajustes.</p>
+  <div id="profileList" class="profileList"></div>
+  <form id="profileForm" class="profileForm" autocomplete="off" hidden>
+    <input id="profileName" placeholder="Nombre" maxlength="14" aria-label="Nombre del ninja nuevo">
+    <div id="avatarPick" class="avatarPick"></div>
+    <button class="smallBtn primary" type="submit">Crear</button>
+  </form>
+  <div class="dialogActions">
+    <button id="profileAddBtn" class="smallBtn ok">➕ Añadir ninja</button>
+    <button id="profileRenameBtn" class="smallBtn primary">✏️ Cambiar nombre</button>
+  </div>
+</dialog>
+
+<!-- ============ MI NINJA (tienda) ============ -->
+<dialog id="shopDialog" class="dialog">
+  <button class="closeX" data-close aria-label="Cerrar">✕</button>
+  <h2>👕 Mi ninja</h2>
+  <p id="shopCoins" class="albumCount" role="status"></p>
+  <div class="shopTop">
+    <div id="shopPreview" class="mascotHolder preview"></div>
+    <div>
+      <div class="setTitle">Color</div>
+      <div id="colorPicker" class="colorPicker"></div>
+    </div>
+  </div>
+  <div id="shopGrid" class="shopGrid"></div>
+  <p class="muted small">Cada acierto es una ⭐. Lo que compras es tuyo para siempre.</p>
+</dialog>
+
+<!-- ============ CALENDARIO ============ -->
+<dialog id="calendarDialog" class="dialog">
+  <button class="closeX" data-close aria-label="Cerrar">✕</button>
+  <h2>📅 Mis días de ninja</h2>
+  <div id="calGrid" class="calGrid"></div>
+  <p id="calInfo" class="muted small"></p>
+</dialog>
+
+<!-- ============ BLOQUEO PARA MAYORES ============ -->
+<dialog id="gateDialog" class="dialog gate">
+  <h2>🔒 Solo para mayores</h2>
+  <p id="gateQ" class="gateQ"></p>
+  <form id="gateForm" class="customForm" autocomplete="off">
+    <input id="gateInput" inputmode="numeric" pattern="[0-9]*" maxlength="3" aria-label="Respuesta">
+    <button class="smallBtn primary" type="submit">Entrar</button>
+  </form>
+  <button class="linkBtn" data-close>Cancelar</button>
 </dialog>
 
 <!-- ============ AJUSTES ============ -->
@@ -283,6 +404,7 @@
       </span>
     </div>
     <div id="letterChips" class="letterChips"></div>
+    <p class="muted small">«Todas» marca las directas. Las letras marcadas son también las de «Trazar letras».</p>
     <p id="letterPreview" class="muted small"></p>
     <label class="optionRow"><input type="checkbox" id="optChangeOnFail"> Cambiar sílabas al fallar</label>
     <label class="optionRow"><input type="checkbox" id="optSameVowel"> Todas con la misma vocal (más difícil)</label>
@@ -340,13 +462,37 @@
   <h3 class="setSection">🎨 General</h3>
 
   <div class="setGroup">
-    <div class="setTitle">Color del ninja</div>
-    <div id="colorPicker" class="colorPicker"></div>
+    <div class="setTitle">Tipo de letra</div>
+    <div class="segmented" id="fontSeg">
+      <button data-value="normal">Normal</button><button data-value="escolar">Ligada</button><button data-value="legible">Lectura fácil</button>
+    </div>
+    <p class="muted small">«Ligada» es la letra enlazada del cole (mejor con minúsculas). «Lectura fácil» es una letra muy clara y abierta, pensada para quien confunde letras.</p>
+    <label class="optionRow"><input type="checkbox" id="optLowercase"> Mostrar en minúsculas</label>
+    <label class="optionRow"><input type="checkbox" id="optSound"> Efectos de sonido</label>
   </div>
 
   <div class="setGroup">
-    <label class="optionRow"><input type="checkbox" id="optLowercase"> Mostrar en minúsculas</label>
-    <label class="optionRow"><input type="checkbox" id="optSound"> Efectos de sonido</label>
+    <div class="setTitle">Aprendizaje</div>
+    <label class="optionRow"><input type="checkbox" id="optSmart"> Repaso inteligente: lo que más cuesta sale más a menudo</label>
+    <label class="optionRow"><input type="checkbox" id="optAuto"> Dificultad automática: sube con 8 aciertos seguidos y baja si falla mucho</label>
+  </div>
+
+  <h3 class="setSection">👨‍👩‍👧 Familia</h3>
+
+  <div class="setGroup">
+    <label class="optionRow"><input type="checkbox" id="optLock"> 🔒 Pedir una multiplicación para entrar en ajustes y para borrar</label>
+    <button class="smallBtn primary" type="button" data-open-profiles>👋 Jugadores</button>
+  </div>
+
+  <div class="setGroup">
+    <div class="setTitle">💾 Copia de seguridad</div>
+    <p class="muted small">Guarda en un archivo los premios y el progreso de todos los jugadores, o recupéralos (por ejemplo, al cambiar de tableta).</p>
+    <div class="row2">
+      <button id="exportBtn" class="smallBtn ok" type="button">⬇️ Guardar copia</button>
+      <button id="importBtn" class="smallBtn primary" type="button">⬆️ Recuperar copia</button>
+    </div>
+    <input id="importFile" type="file" accept="application/json,.json" hidden>
+    <p id="backupInfo" class="muted small" role="status"></p>
   </div>
 
   <h3 class="setSection">🗣️ Voz</h3>
@@ -385,7 +531,11 @@
 <script src="js/game-yesno.js"></script>
 <script src="js/game-spell.js"></script>
 <script src="js/game-numbers.js"></script>
+<script src="js/game-trace.js"></script>
+<script src="js/game-sentence.js"></script>
 <script src="js/screen-progress.js"></script>
+<script src="js/screen-map.js"></script>
+<script src="js/extras.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 {
   "name": "Dojo Ninja",
   "short_name": "Dojo Ninja",
-  "description": "Juego educativo de sílabas para niños con premios, cinturones, puertas mágicas y farolillos. Funciona sin conexión.",
+  "description": "Juego educativo para aprender a leer, escribir y contar: sílabas, trazar letras, frases, números, reloj y monedas, con mapa de aventura, misión diaria, premios y cinturones. Funciona sin conexión.",
   "lang": "es",
   "start_url": "./index.html",
   "scope": "./",

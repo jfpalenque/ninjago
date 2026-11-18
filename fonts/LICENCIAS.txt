@@ -1,0 +1,7 @@
+Fuentes incluidas (todas con licencia SIL Open Font License 1.1, https://openfontlicense.org):
+
+- Baloo 2        © The Baloo 2 Project Authors (Ek Type)        https://github.com/EkType/Baloo2
+- Lexend         © The Lexend Project Authors                   https://github.com/googlefonts/lexend
+- Playwrite ES   © The Playwrite Project Authors (TypeTogether) https://github.com/TypeTogether/Playwrite
+
+Subconjunto «latin», descargado de Fontsource (https://fontsource.org).

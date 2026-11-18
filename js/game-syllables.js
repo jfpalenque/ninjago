@@ -3,12 +3,14 @@
    ========================================================= */
 "use strict";
 
-const DOOR_IMAGES = Array.from({ length: 5 }, (_, i) => `img/imagen${i + 1}.png`);
+const DOOR_IMAGES = Array.from({ length: 5 }, (_, i) => `img/imagen${i + 1}.webp`);
 const FRAME_COLORS = ["#e53935", "#1e88e5", "#43a047", "#8e24aa", "#ff8f00"];
 const LANTERN_COLORS = ["#ff5a36", "#ff2d7a", "#ffa000", "#7c4dff", "#00b8d4"];
 const VOWELS = ["A", "E", "I", "O", "U"];
 
-/* Grupos de sílabas (orden alfabético español) */
+/* Grupos de sílabas (orden alfabético español) por tipo:
+   directas (PA), inversas (AL), trabadas (PLA) y mixtas (PAN). */
+const SYL_TYPES = { dir: "Directas (pa, me…)", inv: "Inversas (al, es…)", tra: "Trabadas (pla, tra…)", mix: "Mixtas (pan, sol…)" };
 const GROUPS = [
   { key: "VOC", label: "AEIOU", syl: VOWELS },
   ..."B C CH D F G".split(" ").map(c => ({ key: c, label: c, syl: VOWELS.map(v => c + v) })),
@@ -16,12 +18,16 @@ const GROUPS = [
   ..."H J K L LL M N Ñ P".split(" ").map(c => ({ key: c, label: c, syl: VOWELS.map(v => c + v) })),
   { key: "Q", label: "QU", syl: ["QUE", "QUI"] },
   ..."R S T V W X Y Z".split(" ").map(c => ({ key: c, label: c, syl: VOWELS.map(v => c + v) })),
-];
+  ..."L N S R".split(" ").map(c => ({ key: "_" + c, label: "A" + c, type: "inv", syl: VOWELS.map(v => v + c) })),
+  ..."BL BR CL CR DR FL FR GL GR PL PR TR".split(" ").map(c => ({ key: c, label: c, type: "tra", syl: VOWELS.map(v => c + v) })),
+  ..."L N S R".split(" ").map(c => ({ key: "M_" + c, label: "–" + c, type: "mix", syl: "M P S T L".split(" ").flatMap(k => VOWELS.map(v => k + v + c)) })),
+].map(g => ({ type: "dir", ...g }));
 
 function activePool() {
   const pool = GROUPS.filter(g => settings.letters.includes(g.key)).flatMap(g => g.syl);
   return pool.length >= 2 ? [...new Set(pool)] : GROUPS.find(g => g.key === "P").syl;
 }
+const sylVowel = s => (/[AEIOU](?=[^AEIOU]*$)/.exec(s) || [""])[0];
 
 const SyllableGame = {
   id: "silabas",
@@ -35,15 +41,18 @@ const SyllableGame = {
   listen() { speak(this.correct); },
 
   pickOptions() {
+    this.failed = false;
     const pool = activePool();
     const n = Math.min(settings.count, pool.length);
     const choices = pool.length > 1 ? pool.filter(s => s !== this.lastCorrect) : pool;
-    const correct = pick(choices);
+    // Repaso inteligente: las sílabas que cuestan tienen el triple de papeletas
+    const weighted = settings.smartReview ? choices.flatMap(s => (isHard(sylStats[s]) ? [s, s, s] : [s])) : choices;
+    const correct = pick(weighted);
 
     let candidates = pool.filter(s => s !== correct);
     if (settings.sameVowel) {
-      const vowel = correct.slice(-1);
-      const same = candidates.filter(s => s.endsWith(vowel));
+      const vowel = sylVowel(correct);
+      const same = candidates.filter(s => sylVowel(s) === vowel);
       if (same.length >= n - 1) candidates = same;
     }
     this.correct = this.lastCorrect = correct;
@@ -126,11 +135,15 @@ const SyllableGame = {
     const [x, y] = centerOf(el);
 
     if (syl === this.correct) {
+      trackSyl(this.correct, !this.failed);
+      this.failed = false;
       el.classList.add(settings.mode === "lanterns" ? "burst" : "open");
       document.querySelectorAll(".door").forEach(d => d !== el && d.classList.add("dim"));
       scoreCorrect({ x, y, statKey: "syllablesOk" });
     } else {
       session.locked = true;
+      this.failed = true;
+      if (settings.changeOnFail) { trackSyl(this.correct, false); this.failed = false; }
       restartAnim(el, "wrong");
       scoreWrong();
       speak(`Esa es ${sylSay(syl)}. Busca: ${sylSay(this.correct)}`);

@@ -4,7 +4,7 @@
    ========================================================= */
 "use strict";
 
-const APP_VERSION = "3.3.0";
+const APP_VERSION = "4.0.0";
 
 // premio25.png es idéntico a premio18.png y premio19.png no existe
 const DUPLICATE_PRIZES = { "img/premios/premio25.png": "img/premios/premio18.png" };
@@ -45,7 +45,7 @@ function prizeHTML(p) {
   const s = STICKER_INFO[p];
   return s
     ? `<span class="sticker" style="--c:${s.color}" title="${esc(s.name)}"><span>${s.emoji}</span></span>`
-    : `<img src="${p}" alt="" loading="lazy" draggable="false">`;
+    : `<img src="${p.replace(/\.png$/, ".webp")}" alt="" loading="lazy" draggable="false">`;
 }
 
 /* `min` = premios ganados en total. Los cinturones antiguos conservan su mínimo
@@ -108,15 +108,32 @@ function restartAnim(el, cls) {
   el.classList.add(cls);
 }
 
-function load(key, fallback) {
+function rawLoad(key, fallback) {
   try {
     const v = localStorage.getItem(key);
     return v === null ? fallback : JSON.parse(v);
   } catch { return fallback; }
 }
-function save(key, value) {
+function rawSave(key, value) {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* almacenamiento lleno o bloqueado */ }
 }
+
+/* ---------------------------------------------------------
+   Perfiles: cada niño tiene sus ajustes, premios y progreso.
+   El perfil «p1» usa las claves de siempre (sin prefijo) para
+   conservar lo que ya había guardado; los demás llevan «<id>:».
+   `lock` = bloqueo para mayores (es del dispositivo, no del perfil).
+   --------------------------------------------------------- */
+const PROFILE_KEYS = ["dojoSettings", "unlockedRewards", "dojoStats", "dojoWordStats", "dojoMedals", "dojoSylStats", "dojoDaily", "dojoShop"];
+const profiles = { list: [{ id: "p1", name: "Ninja", avatar: "🥷" }], current: "p1", lock: true, ...rawLoad("dojoProfiles", {}) };
+if (!Array.isArray(profiles.list) || !profiles.list.length) profiles.list = [{ id: "p1", name: "Ninja", avatar: "🥷" }];
+if (!profiles.list.some(p => p.id === profiles.current)) profiles.current = profiles.list[0].id;
+const saveProfiles = () => rawSave("dojoProfiles", profiles);
+const currentProfile = () => profiles.list.find(p => p.id === profiles.current);
+const profileKey = (key, id = profiles.current) => (id === "p1" ? key : `${id}:${key}`);
+
+const load = (key, fallback) => rawLoad(profileKey(key), fallback);
+const save = (key, value) => rawSave(profileKey(key), value);
 
 /* ---------------------------------------------------------
    Estado persistente (con migración de la versión 1)
@@ -133,14 +150,18 @@ const DEFAULT_SETTINGS = {
   numMax: 10, numPics: true,
   // voz ("" = automática)
   voice: "", pitch: 1.1,
+  // repaso de lo que cuesta, dificultad automática, tipo de letra y disfraz del ninja
+  smartReview: true, autoLevel: true, font: "normal",
+  outfit: { hat: "", glasses: "", pet: "" },
 };
 
 function loadSettings() {
   const stored = load("dojoSettings", null);
-  if (stored) return { ...DEFAULT_SETTINGS, ...stored };
+  if (stored) return { ...DEFAULT_SETTINGS, ...stored, outfit: { ...DEFAULT_SETTINGS.outfit, ...stored.outfit } };
+  if (profiles.current !== "p1") return { ...DEFAULT_SETTINGS, outfit: { ...DEFAULT_SETTINGS.outfit } };
 
   // Migrar ajustes de la versión 1
-  const s = { ...DEFAULT_SETTINGS };
+  const s = { ...DEFAULT_SETTINGS, outfit: { ...DEFAULT_SETTINGS.outfit } };
   const oldLetters = "BCDFGHJKLMNPRSTVWXYZ".split("").filter(l => load("letter_" + l, false));
   if (load("letter_Q", false)) oldLetters.push("Q");
   if (oldLetters.length) s.letters = oldLetters;
@@ -166,9 +187,33 @@ const STATS_DEFAULT = {
   stars: 0, bestStreak: 0, progress: 0, syllablesOk: 0, wordsRead: 0, wordsBuilt: 0,
   picturesOk: 0, missingOk: 0, countOk: 0, sumsOk: 0, subsOk: 0, hearOk: 0, matchOk: 0,
   pairsOk: 0, yesNoOk: 0, spellOk: 0, seqOk: 0, bigOk: 0, orderOk: 0,
+  traceOk: 0, sentOk: 0, shapeOk: 0, clockOk: 0, coinOk: 0, doubleOk: 0,
+  spent: 0,        // estrellas gastadas en la tienda (las medallas cuentan todas las ganadas)
+  missions: 0,     // misiones del día cumplidas
 };
-let stats = { ...STATS_DEFAULT, ...load("dojoStats", {}) };
+/* byGame = { ruta: { ok, fail, sec } }: aciertos, fallos y segundos jugados en cada juego */
+const freshStats = () => ({ ...STATS_DEFAULT, byGame: {} });
+let stats = { ...freshStats(), ...load("dojoStats", {}) };
 let wordStats = load("dojoWordStats", {});      // { palabra: { ok, fail } }
+let sylStats = load("dojoSylStats", {});        // { sílaba: { ok, fail } }
+let shop = { owned: [], ...load("dojoShop", {}) };
+const coins = () => Math.max(0, stats.stars - (stats.spent || 0));
+
+/* Todos los juegos: ruta, icono, nombre, contador de aciertos y grupo */
+const GAME_INFO = [
+  ["silabas", "🚪", "Sílabas", "syllablesOk", "leer"], ["trazar", "✍️", "Trazar letras", "traceOk", "leer"],
+  ["dibujo", "🖼️", "Palabra y dibujo", "picturesOk", "leer"], ["construir", "🧩", "Construye", "wordsBuilt", "leer"],
+  ["falta", "🔍", "¿Qué falta?", "missingOk", "leer"], ["parejas", "🃏", "Parejas", "pairsOk", "leer"],
+  ["sino", "👍", "¿Sí o no?", "yesNoOk", "leer"], ["letras", "🔤", "Letras", "spellOk", "leer"],
+  ["leer", "🎤", "Lee la palabra", "wordsRead", "leer"], ["frases", "📜", "Frases", "sentOk", "leer"],
+  ["contar", "🍎", "Contar", "countOk", "num"], ["numero", "👂", "¿Qué número?", "hearOk", "num"],
+  ["grupos", "🎯", "Busca el grupo", "matchOk", "num"], ["serie", "🐛", "Series", "seqOk", "num"],
+  ["mayor", "🐘", "Mayor o menor", "bigOk", "num"], ["ordenar", "🪜", "Ordena", "orderOk", "num"],
+  ["sumar", "➕", "Sumas", "sumsOk", "num"], ["restar", "➖", "Restas", "subsOk", "num"],
+  ["dobles", "✌️", "Dobles y mitades", "doubleOk", "num"], ["formas", "🔷", "Formas y colores", "shapeOk", "num"],
+  ["reloj", "🕒", "El reloj", "clockOk", "num"], ["monedas", "🪙", "Monedas", "coinOk", "num"],
+].map(([route, ico, name, stat, group]) => ({ route, ico, name, stat, group }));
+const gameInfo = route => GAME_INFO.find(g => g.route === route);
 
 const saveSettings = () => save("dojoSettings", settings);
 const saveStats = () => save("dojoStats", stats);
@@ -178,10 +223,129 @@ function trackWord(word, ok) {
   const w = wordStats[k] || (wordStats[k] = { ok: 0, fail: 0 });
   ok ? w.ok++ : w.fail++;
   save("dojoWordStats", wordStats);
+  // Repaso inteligente: la palabra fallada vuelve a salir dentro de un par de rondas
+  if (!ok) session.current?.deck?.retry(k);
 }
+function trackSyl(syl, ok) {
+  const k = syl.toUpperCase();
+  const s = sylStats[k] || (sylStats[k] = { ok: 0, fail: 0 });
+  ok ? s.ok++ : s.fail++;
+  save("dojoSylStats", sylStats);
+}
+/* «Cuesta»: se ha fallado alguna vez y al menos tantas como se ha acertado */
+const isHard = s => !!s && s.fail > 0 && s.fail >= s.ok;
 
 /* Estado de la sesión */
-const session = { locked: true, streak: 0, current: null, token: 0, rewardActive: false };
+const session = { locked: true, streak: 0, current: null, route: "menu", token: 0, rewardActive: false, parentUntil: 0 };
+
+/* ---------------------------------------------------------
+   Día a día: aciertos, fallos y tiempo de cada día (para la racha
+   diaria, el calendario y la evolución) y la misión del día.
+   daily.days = { "2026-11-18": { ok, fail, sec, mission: [{ route, n, got }], done } }
+   --------------------------------------------------------- */
+const dayKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+let daily = { days: {}, bestStreak: 0, ...load("dojoDaily", {}) };
+const saveDaily = () => save("dojoDaily", daily);
+
+function dayRec() {
+  const k = dayKey();
+  if (!daily.days[k]) {
+    daily.days[k] = { ok: 0, fail: 0, sec: 0 };
+    const keys = Object.keys(daily.days).sort();
+    keys.slice(0, Math.max(0, keys.length - 200)).forEach(old => delete daily.days[old]);   // unos 6 meses
+  }
+  return daily.days[k];
+}
+
+/** Días seguidos jugando (hoy cuenta si ya ha acertado algo; si no, se mira hasta ayer). */
+function dayStreak() {
+  let d = new Date(), n = 0;
+  if (!(daily.days[dayKey(d)]?.ok > 0)) d = addDays(d, -1);
+  while (daily.days[dayKey(d)]?.ok > 0) { n++; d = addDays(d, -1); }
+  return n;
+}
+
+/** Tres tareas para hoy: sílabas, un juego de palabras y uno de números. */
+function todayMission() {
+  const d = dayRec();
+  if (!d.mission) {
+    const any = group => pick(GAME_INFO.filter(g => g.group === group && !["silabas", "leer", "trazar"].includes(g.route))).route;
+    d.mission = [{ route: "silabas", n: 5, got: 0 }, { route: any("leer"), n: 4, got: 0 }, { route: any("num"), n: 4, got: 0 }];
+    saveDaily();
+  }
+  return d.mission.filter(t => gameInfo(t.route));
+}
+
+const gameStat = route => (stats.byGame[route] || (stats.byGame[route] = { ok: 0, fail: 0, sec: 0 }));
+
+/** Apunta un acierto o un fallo del juego actual. Devuelve true si con él se cumple la misión de hoy. */
+function noteResult(ok) {
+  const d = dayRec();
+  ok ? d.ok++ : d.fail++;
+  if (gameInfo(session.route)) gameStat(session.route)[ok ? "ok" : "fail"]++;
+  adaptLevel(ok);
+  let missionDone = false;
+  if (ok) {
+    daily.bestStreak = Math.max(daily.bestStreak || 0, dayStreak());
+    const tasks = todayMission();
+    const t = tasks.find(t => t.route === session.route && t.got < t.n);
+    if (t) {
+      t.got++;
+      if (!d.done && tasks.every(t => t.got >= t.n)) { d.done = true; missionDone = true; }
+    }
+  }
+  saveDaily();
+  return missionDone;
+}
+
+/* Tiempo jugado: cuenta mientras hay un juego abierto y el niño ha tocado algo hace poco */
+let lastInput = Date.now();
+["pointerdown", "keydown"].forEach(ev => document.addEventListener(ev, () => (lastInput = Date.now()), true));
+setInterval(() => {
+  if (!session.current || document.hidden || Date.now() - lastInput > 60000) return;
+  dayRec().sec += 5;
+  gameStat(session.route).sec += 5;
+  saveDaily();
+  saveStats();
+}, 5000);
+
+/* ---------------------------------------------------------
+   Dificultad automática: tras 8 aciertos seguidos sube un escalón
+   y si se acumulan fallos baja. Cada tipo de juego tiene el suyo.
+   --------------------------------------------------------- */
+const LEVEL_LADDERS = {
+  word: ["wordLevel", ["1", "2", "3"]],
+  num: ["numMax", [5, 10, 20]],
+  syl: ["count", [2, 3, 4, 5]],
+};
+const adaptState = {};
+function adaptLevel(ok) {
+  const g = gameInfo(session.route);
+  if (!settings.autoLevel || !g || ["trazar", "formas"].includes(g.route)) return;
+  const dom = g.route === "silabas" ? "syl" : g.group === "num" ? "num" : "word";
+  const st = adaptState[dom] || (adaptState[dom] = { up: 0, down: 0 });
+  if (ok) { st.up++; st.down = Math.max(0, st.down - 1); } else { st.down++; st.up = 0; }
+  const dir = st.up >= 8 ? 1 : st.down >= 4 ? -1 : 0;
+  if (!dir) return;
+  st.up = st.down = 0;
+  const [key, steps] = LEVEL_LADDERS[dom];
+  const i = steps.indexOf(settings[key]) + dir;
+  if (!(steps.indexOf(settings[key]) >= 0 && i >= 0 && i < steps.length)) return;   // «Todas» o ya en el tope
+  settings[key] = steps[i];
+  saveSettings();
+  if (typeof onAutoLevel === "function") onAutoLevel(key, dir);
+}
+
+/* Aviso breve arriba de la pantalla */
+function toast(text) {
+  const t = document.createElement("div");
+  t.className = "toast";
+  t.setAttribute("role", "status");
+  t.textContent = text;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3600);
+}
 
 /* Ejecuta fn tras ms solo si seguimos en la misma pantalla/juego */
 function later(fn, ms) {
@@ -218,11 +382,13 @@ function pickVoice() {
 
 /* Una sílaba suelta («to», «me», «do»…) hay voces que la leen en inglés o como
    abreviatura. Con tilde («tó») la leen siempre como sílaba española. */
-const LONE_SYLLABLE = /^(?:ch|ll|qu|gu|[bcdfghjklmnñpqrstvwxyz])[aeiou]$/;
+/* También vale para las trabadas («pla»), inversas («al») y mixtas («pan»): onset + vocal + coda */
+const LONE_SYLLABLE = /^(qu|gu(?=[ei])|ch|ll|[bcdfgkpt][lr]|[bcdfghjklmnñpqrstvwxyz])?([aeiou])([lnsr])?$/;
 const ACCENTED = { a: "á", e: "é", i: "í", o: "ó", u: "ú" };
 function sylSay(s) {
   const t = String(s).toLowerCase().trim();
-  return LONE_SYLLABLE.test(t) ? t.slice(0, -1) + ACCENTED[t.slice(-1)] : t;
+  const m = LONE_SYLLABLE.exec(t);
+  return m && (m[1] || m[3]) ? (m[1] || "") + ACCENTED[m[2]] + (m[3] || "") : t;
 }
 if ("speechSynthesis" in window) {
   pickVoice();
@@ -251,7 +417,39 @@ const show = txt => settings.lowercase ? txt.toLowerCase() : txt.toUpperCase();
 /* ---------------------------------------------------------
    Mascota ninja (SVG original)
    --------------------------------------------------------- */
-function mascotSVG() {
+const SHOP_ITEMS = [
+  ["kasa", "hat", "👒", "Sombrero de paja", 15], ["party", "hat", "🥳", "Gorro de fiesta", 20],
+  ["cat", "hat", "😺", "Orejas de gato", 25], ["wizard", "hat", "🧙", "Gorro de mago", 40], ["crown", "hat", "👑", "Corona", 60],
+  ["round", "glasses", "👓", "Gafas redondas", 15], ["shades", "glasses", "🕶️", "Gafas de sol", 20],
+  ["turtle", "pet", "🐢", "Tortuga", 20], ["kitten", "pet", "🐈", "Gatito", 20], ["owl", "pet", "🦉", "Búho", 25],
+  ["panda", "pet", "🐼", "Panda", 30], ["fox", "pet", "🦊", "Zorro", 30], ["dragon", "pet", "🐉", "Dragoncito", 50],
+].map(([id, type, ico, name, price]) => ({ id, type, ico, name, price }));
+const SHOP_TYPES = { hat: "🎩 Sombreros", glasses: "👓 Gafas", pet: "🐾 Mascotas" };
+
+const HAT_SVG = {
+  kasa: `<path d="M22 44 L100 -10 L178 44 Q100 60 22 44Z" fill="#e6c36a" stroke="#a87a2a" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M100 -10 L70 50 M100 -10 L130 50 M100 -10 L100 52" stroke="#a87a2a" stroke-width="2" opacity=".5"/>`,
+  party: `<path d="M70 36 L100 -36 L130 36Z" fill="#ec4f9c" stroke="#a3216a" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M81 12 L119 12 M89 -8 L111 -8" stroke="#ffd23f" stroke-width="6"/><circle cx="100" cy="-38" r="9" fill="#ffd23f"/>`,
+  cat: `<path class="mask" d="M52 44 L48 -4 L88 24Z"/><path class="mask" d="M148 44 L152 -4 L112 24Z"/>
+    <path d="M58 30 L56 8 L76 22Z" fill="#ffb3c7"/><path d="M142 30 L144 8 L124 22Z" fill="#ffb3c7"/>`,
+  wizard: `<path d="M58 34 L104 -52 L142 34Z" fill="#5b3fa0" stroke="#3a2470" stroke-width="3" stroke-linejoin="round"/>
+    <ellipse cx="100" cy="36" rx="62" ry="10" fill="#3a2470"/>
+    <path d="M97 -12 l3 7 7 1 -5 5 1 7 -6 -4 -6 4 1 -7 -5 -5 7 -1Z" fill="#ffd23f"/>`,
+  crown: `<path d="M60 36 L56 -6 L80 14 L100 -14 L120 14 L144 -6 L140 36Z" fill="#ffd23f" stroke="#a87a00" stroke-width="3" stroke-linejoin="round"/>
+    <circle cx="100" cy="20" r="6" fill="#e53935"/><circle cx="76" cy="24" r="4" fill="#1e88e5"/><circle cx="124" cy="24" r="4" fill="#43a047"/>`,
+};
+const GLASSES_SVG = {
+  shades: `<rect x="66" y="69" width="30" height="20" rx="8" fill="#15151c"/><rect x="104" y="69" width="30" height="20" rx="8" fill="#15151c"/>
+    <path d="M96 76 H104 M66 76 L56 72 M134 76 L144 72" stroke="#15151c" stroke-width="4" stroke-linecap="round"/>`,
+  round: `<circle cx="82" cy="79" r="13" fill="rgba(255,255,255,.35)" stroke="#5c2e18" stroke-width="3.5"/>
+    <circle cx="118" cy="79" r="13" fill="rgba(255,255,255,.35)" stroke="#5c2e18" stroke-width="3.5"/>
+    <path d="M95 79 H105" stroke="#5c2e18" stroke-width="3.5"/>`,
+};
+
+/** El ninja con lo que lleve puesto (`outfit` permite probar otro disfraz en la tienda). */
+function mascotSVG(outfit = settings.outfit) {
+  const pet = SHOP_ITEMS.find(i => i.type === "pet" && i.id === outfit.pet);
   return `
   <svg viewBox="0 0 200 230" role="img" aria-label="Ninja">
     <g class="ninja">
@@ -295,8 +493,20 @@ function mascotSVG() {
       <ellipse cx="68" cy="89" rx="6" ry="3.5" fill="#ff8a8a" opacity=".6"/>
       <ellipse cx="132" cy="89" rx="6" ry="3.5" fill="#ff8a8a" opacity=".6"/>
       <path class="sweat" d="M150 52 Q144 64 150 68 Q156 64 150 52Z" fill="#7fd3ff"/>
+      ${GLASSES_SVG[outfit.glasses] || ""}
+      ${HAT_SVG[outfit.hat] || ""}
     </g>
+    ${pet ? `<text class="pet" x="-38" y="222" font-size="62">${pet.ico}</text>` : ""}
   </svg>`;
+}
+
+/** Vuelve a dibujar todos los ninjas (al cambiar de sombrero, gafas o mascota). */
+function renderMascots() {
+  document.querySelectorAll(".mascotHolder:not(.preview)").forEach(h => (h.innerHTML = mascotSVG()));
+}
+
+function applyFont() {
+  document.body.dataset.font = settings.font || "normal";
 }
 
 function mascotReact(kind) {
@@ -332,7 +542,7 @@ function updateBelt() {
   const belt = BELTS[beltIndex()];
   document.documentElement.style.setProperty("--belt", belt.color);
   $("beltBadge").innerHTML = `<i style="background:${beltBg(belt)}"></i><span>${belt.name}</span>`;
-  $("startBelt").textContent = `Cinturón ${belt.name} · ⭐ ${stats.stars}`;
+  $("startBelt").textContent = `Cinturón ${belt.name} · ⭐ ${coins()}`;
   const owned = PRIZES.filter(p => unlocked[p]).length;
   $("menuPrizes").textContent = `${owned} de ${PRIZE_COUNT}`;
 }
@@ -349,9 +559,13 @@ const MEDALS = [
     ["yesNoOk", "👍", "Juez sabio"], ["spellOk", "🔤", "Rey de las letras"], ["countOk", "🍎", "Contador"],
     ["hearOk", "👂", "Oído fino"], ["matchOk", "🎯", "Puntería"], ["seqOk", "🐛", "Maestro de series"],
     ["bigOk", "🐘", "Gigante"], ["orderOk", "🪜", "Ordenado"], ["sumsOk", "➕", "Sumador"], ["subsOk", "➖", "Restador"],
+    ["traceOk", "✍️", "Buena letra"], ["sentOk", "📜", "Lector de frases"], ["doubleOk", "✌️", "Doble ninja"],
+    ["shapeOk", "🔷", "Artista"], ["clockOk", "🕒", "Relojero"], ["coinOk", "🪙", "Tesorero"],
   ].map(([key, ico, name]) => ({ id: key, ico, name, hint: "20 aciertos", ok: () => stats[key] >= 20 })),
   ...[[10, "🎁", "Coleccionista"], [30, "🎒", "Gran colección"], [PRIZE_COUNT, "🏅", "¡Álbum completo!"]]
     .map(([n, ico, name]) => ({ id: "prizes" + n, ico, name, hint: `${n} premios distintos`, ok: () => PRIZES.filter(p => unlocked[p]).length >= n })),
+  ...[3, 7, 30].map(n => ({ id: "days" + n, ico: "📅", name: `${n} días seguidos`, hint: "Juega todos los días", ok: () => (daily.bestStreak || 0) >= n })),
+  ...[1, 5, 20].map(n => ({ id: "missions" + n, ico: "🎯", name: n === 1 ? "Primera misión" : `${n} misiones`, hint: "Cumple la misión del día", ok: () => (stats.missions || 0) >= n })),
 ];
 let medals = load("dojoMedals", []);
 
@@ -498,6 +712,8 @@ function scoreCorrect({ x, y, statKey, delay = 1500 } = {}) {
   if (statKey) stats[statKey] = (stats[statKey] || 0) + 1;
   stats.bestStreak = Math.max(stats.bestStreak, session.streak);
   stats.progress = Math.min(stats.progress + 1, settings.goal);
+  const missionDone = noteResult(true);
+  if (missionDone) { stats.stars += MISSION_BONUS; stats.missions = (stats.missions || 0) + 1; }
   saveStats();
   renderHud();
   renderProgress(true);
@@ -514,8 +730,17 @@ function scoreCorrect({ x, y, statKey, delay = 1500 } = {}) {
     burst(innerWidth / 2, innerHeight / 3, ["🏅", "✨", medal.ico], 14);
   }
 
-  if (stats.progress >= settings.goal) later(startReward, Math.min(delay, 1200));
+  if (missionDone) later(() => startReward({ mission: true }), Math.min(delay, 1200));
+  else if (stats.progress >= settings.goal) later(() => startReward(), Math.min(delay, 1200));
   else later(() => session.current?.next(), delay);
+}
+const MISSION_BONUS = 10;   // estrellas de regalo al cumplir la misión del día
+
+/** Fallo que no pasa por scoreWrong (juegos con su propio mensaje). */
+function noteFail() {
+  noteResult(false);
+  session.streak = 0;
+  renderHud();
 }
 
 /** Fallo: rompe la racha y anima a seguir. */
@@ -523,8 +748,7 @@ function scoreWrong(message) {
   play("sndWrong", .7);
   mascotReact("sad");
   say(message || pick(ENCOURAGE), "bad");
-  session.streak = 0;
-  renderHud();
+  noteFail();
 }
 
 /* ---------------------------------------------------------
@@ -536,7 +760,7 @@ function choosePrize() {
   return missing.length && Math.random() < .65 ? pick(missing) : pick(PRIZES);
 }
 
-function startReward() {
+function startReward({ mission = false } = {}) {
   session.locked = true;
   session.rewardActive = true;
   $("lanterns").classList.add("paused");
@@ -565,6 +789,7 @@ function startReward() {
     const name = prizeName(prize);
     let text = (isNew ? "¡Premio nuevo!" : "¡Otro premio!") + (name ? ` ${name}` : "");
     if (beltAfter > beltBefore) text = `¡Ahora eres cinturón ${BELTS[beltAfter].name}! 🥋`;
+    else if (mission) text = `¡Misión del día cumplida! +${MISSION_BONUS} ⭐`;
     updateBelt();
     $("rewardText").textContent = text;
     speak(text.replace(/[^\p{L}\p{N}\s¡!]/gu, ""));
@@ -578,7 +803,9 @@ function startReward() {
     ov.hidden = true;
     restartAnim($("albumBtn"), "bump");
     launchBalloons().then(() => {
-      stats.progress = 0;
+      // El premio de la misión no gasta la barra: si además estaba llena, toca otro regalo
+      if (mission && stats.progress >= settings.goal && session.current) return startReward();
+      if (!mission) stats.progress = 0;
       saveStats();
       renderProgress();
       session.rewardActive = false;
@@ -591,31 +818,51 @@ function startReward() {
   $("rewardOkBtn").onclick = close;
 }
 
+/* Los globos van dentro de una capa fija a pantalla completa: recorta lo que se
+   sale (así la página no se desplaza), tapa los botones de detrás y no deja
+   arrastrar ni hacer zoom mientras se explotan. */
 function launchBalloons() {
   return new Promise(resolve => {
     const total = reducedMotion ? 5 : 14;
     let remaining = total;
     play("sndBalloons", .5);
     say("¡Explota los globos! 🎈", "good");
+    document.activeElement?.blur?.();
 
+    const layer = document.createElement("div");
+    layer.id = "balloonLayer";
+    const block = e => e.preventDefault();
+    ["touchmove", "wheel", "contextmenu", "dblclick"].forEach(ev => layer.addEventListener(ev, block, { passive: false }));
+    const blockKeys = e => { if (e.key !== "Tab") { e.preventDefault(); e.stopPropagation(); } };
+    document.addEventListener("keydown", blockKeys, true);
+    $("game").inert = true;
+
+    let finished = false;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      clearTimeout(safety);
+      document.removeEventListener("keydown", blockKeys, true);
+      $("game").inert = false;
+      layer.remove();
+      scrollTo(0, 0);
+      resolve();
+    };
     const done = b => {
       if (b.dataset.gone) return;
       b.dataset.gone = "1";
       b.remove();
-      if (--remaining === 0) { clearTimeout(safety); resolve(); }
+      if (--remaining === 0) finish();
     };
-    const safety = setTimeout(() => {
-      document.querySelectorAll(".balloon").forEach(b => b.remove());
-      resolve();
-    }, 11000);
+    const safety = setTimeout(finish, 11000);
 
     for (let i = 0; i < total; i++) {
-      const b = document.createElement("button");
+      const size = rand(70, 130);
+      const b = document.createElement("div");
       b.className = "balloon";
       b.textContent = "🎈";
-      b.setAttribute("aria-label", "Globo");
-      b.style.left = rand(3, 88) + "vw";
-      b.style.fontSize = rand(70, 130) + "px";
+      b.style.left = `calc(${rand(0, 100)} * (100% - ${size}px) / 100)`;   // siempre entero dentro de la pantalla
+      b.style.fontSize = size + "px";
       b.style.setProperty("--hue", rand(0, 360) + "deg");
       b.style.setProperty("--dur", rand(4.5, 7.5) + "s");
       b.style.setProperty("--delay", rand(0, 1.5) + "s");
@@ -628,8 +875,9 @@ function launchBalloons() {
         setTimeout(() => done(b), 250);
       });
       b.addEventListener("animationend", e => { if (e.animationName === "floatUp") done(b); });
-      document.body.appendChild(b);
+      layer.appendChild(b);
     }
+    document.body.appendChild(layer);
   });
 }
 

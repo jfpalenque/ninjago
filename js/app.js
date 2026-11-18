@@ -6,6 +6,7 @@
 const GAMES = {
   silabas: SyllableGame, leer: ReadGame, construir: BuildGame, dibujo: PictureGame, falta: MissingGame,
   parejas: PairsGame, sino: YesNoGame, letras: SpellGame, numeros: NumberGame,
+  trazar: TraceGame, frases: SentenceGame,
 };
 /* Rutas que abren un juego (algunas con un modo concreto) */
 const ROUTES = {
@@ -14,10 +15,12 @@ const ROUTES = {
   contar: [NumberGame, "count"], numero: [NumberGame, "hear"], grupos: [NumberGame, "match"],
   serie: [NumberGame, "seq"], mayor: [NumberGame, "big"], ordenar: [NumberGame, "order"],
   sumar: [NumberGame, "add"], restar: [NumberGame, "sub"],
+  dobles: [NumberGame, "double"], formas: [NumberGame, "shape"], reloj: [NumberGame, "clock"], monedas: [NumberGame, "coins"],
+  trazar: [TraceGame], frases: [SentenceGame],
 };
 const WORD_GAMES = [ReadGame, BuildGame, PictureGame, MissingGame, PairsGame, YesNoGame, SpellGame];
 const resetDecks = () => WORD_GAMES.forEach(g => g.deck.reset());
-const SCREENS = ["menuScreen", "game", "progressScreen"];
+const SCREENS = ["menuScreen", "game", "progressScreen", "mapScreen"];
 
 /* ---------------------------------------------------------
    Navegación: #menu, #progreso y una ruta por juego (las claves de ROUTES)
@@ -29,6 +32,7 @@ function showScreen(id) {
 
 function route() {
   const name = location.hash.replace("#", "") || "menu";
+  const cameFromMap = session.route === "mapa";
 
   session.current?.leave();
   session.current = null;
@@ -38,7 +42,11 @@ function route() {
   document.querySelectorAll("dialog[open]").forEach(d => d.close());
 
   const [g, mode] = ROUTES[name] || [];
+  session.route = g ? name : ["progreso", "mapa"].includes(name) ? name : "menu";
   if (g) {
+    // quien entra desde el mapa vuelve al mapa con el botón de casa
+    $("homeBtn").href = cameFromMap ? "#mapa" : "#menu";
+    $("homeBtn").textContent = cameFromMap ? "🗺️" : "🏠";
     g.setup?.(mode);
     showScreen("game");
     Object.values(GAMES).forEach(x => ($(x.view).hidden = x !== g));
@@ -53,9 +61,13 @@ function route() {
   } else if (name === "progreso") {
     showScreen("progressScreen");
     renderProgressScreen();
+  } else if (name === "mapa") {
+    showScreen("mapScreen");
+    renderMap();
   } else {
     showScreen("menuScreen");
     updateBelt();
+    renderMission();
     setTimeout(() => mascotReact("wave"), 300);
   }
   document.body.dataset.screen = name;
@@ -63,6 +75,7 @@ function route() {
 
 /* Pone o quita los dibujos de las palabras en la pantalla actual */
 const PIC_IDS = { leer: "readEmoji", construir: "buildEmoji", falta: "missEmoji", letras: "spellEmoji" };
+const segSync = {};     // para refrescar un selector cuando el ajuste cambia solo (dificultad automática)
 function applyShowPics() {
   $("picBtn").textContent = settings.showPics ? "🖼️" : "🙈";
   $("picBtn").classList.toggle("off", !settings.showPics);
@@ -94,12 +107,29 @@ function setupSegmented(id, key, parse, onChange) {
     onChange?.();
   });
   sync();
+  segSync[key] = sync;
+}
+
+/* La dificultad automática ha subido o bajado un escalón */
+function onAutoLevel(key, dir) {
+  segSync[key]?.();
+  if (key === "wordLevel") { resetDecks(); renderLevelInfo(); }
+  const what = { wordLevel: "Palabras", numMax: "Números", count: "Sílabas" }[key];
+  toast(dir > 0 ? `🚀 ¡Subes de nivel! ${what} más difíciles` : `🌱 ${what}: un poco más fácil`);
 }
 
 function renderLetterChips() {
   const box = $("letterChips");
   box.innerHTML = "";
+  let type = "";
   GROUPS.forEach(g => {
+    if (g.type !== type) {
+      type = g.type;
+      const h = document.createElement("div");
+      h.className = "chipHead";
+      h.textContent = SYL_TYPES[type];
+      box.appendChild(h);
+    }
     const c = document.createElement("button");
     c.className = "chip" + (settings.letters.includes(g.key) ? " on" : "");
     c.textContent = g.label;
@@ -188,7 +218,7 @@ function setupSettings() {
   setupSegmented("micSeg", "micLevel", v => v, renderLevelInfo);
 
   renderLetterChips();
-  $("allLettersBtn").onclick = () => { settings.letters = GROUPS.map(g => g.key); saveSettings(); renderLetterChips(); restartGameIfPlaying("silabas"); };
+  $("allLettersBtn").onclick = () => { settings.letters = GROUPS.filter(g => g.type === "dir").map(g => g.key); saveSettings(); renderLetterChips(); restartGameIfPlaying("silabas"); };
   $("noLettersBtn").onclick = () => { settings.letters = []; saveSettings(); renderLetterChips(); restartGameIfPlaying("silabas"); };
 
   const picker = $("colorPicker");
@@ -232,6 +262,11 @@ function setupSettings() {
   bindCheck("optBuildExtra", "buildExtra", restartBuilders);
   bindCheck("optOnlyCustom", "onlyCustom", () => { renderLevelInfo(); resetDecks(); });
   bindCheck("optNumPics", "numPics", () => restartGameIfPlaying("numeros"));
+  bindCheck("optSmart", "smartReview", resetDecks);
+  bindCheck("optAuto", "autoLevel");
+  setupSegmented("fontSeg", "font", v => v, () => { applyFont(); restartGameIfPlaying("trazar"); });
+  $("optLock").checked = profiles.lock;
+  $("optLock").onchange = () => { profiles.lock = $("optLock").checked; saveProfiles(); };
 
   const rate = $("optRate");
   rate.value = settings.rate;
@@ -288,12 +323,16 @@ function setupDialogs() {
     });
   });
 
-  document.addEventListener("click", e => {
-    if (e.target.closest("[data-open-settings]")) $("settingsDialog").showModal();
+  document.addEventListener("click", async e => {
+    if (e.target.closest("[data-open-settings]")) { if (await parentGate()) $("settingsDialog").showModal(); return; }
     if (e.target.closest("[data-open-album]")) { renderAlbum(); $("albumDialog").showModal(); }
+    if (e.target.closest("[data-open-shop]")) { renderShop(); $("shopDialog").showModal(); }
+    if (e.target.closest("[data-open-calendar]")) { renderCalendar(); $("calendarDialog").showModal(); }
+    if (e.target.closest("[data-open-profiles]")) { $("settingsDialog").close(); $("profileBtn").click(); }
   });
 
-  $("resetRewardsBtn").onclick = () => {
+  $("resetRewardsBtn").onclick = async () => {
+    if (!(await parentGate())) return;
     if (!confirm("¿Seguro que quieres borrar todos los premios y cinturones?")) return;
     unlocked = {};
     save("unlockedRewards", unlocked);
@@ -301,10 +340,15 @@ function setupDialogs() {
     renderAlbum();
   };
 
-  $("resetStatsBtn").onclick = () => {
-    if (!confirm("¿Borrar estrellas, rachas y estadísticas de palabras? (Los premios se mantienen)")) return;
-    stats = { ...STATS_DEFAULT };
+  $("resetStatsBtn").onclick = async () => {
+    if (!(await parentGate())) return;
+    if (!confirm("¿Borrar estrellas, rachas, calendario y estadísticas de palabras y sílabas? (Los premios y lo comprado en la tienda se mantienen)")) return;
+    stats = freshStats();
     wordStats = {};
+    sylStats = {};
+    daily = { days: {}, bestStreak: 0 };
+    save("dojoSylStats", sylStats);
+    saveDaily();
     medals = [];
     save("dojoMedals", medals);
     saveStats();
@@ -319,13 +363,16 @@ function setupDialogs() {
    --------------------------------------------------------- */
 function init() {
   applyNinjaColor();
+  applyFont();
   buildSky();
-  $("mascot").innerHTML = mascotSVG();
-  $("startMascot").innerHTML = mascotSVG();
+  renderMascots();
   updateBelt();
   checkMedals();                   // las que ya tenía ganadas no se anuncian de golpe
   setupSettings();
   setupDialogs();
+  setupProfiles();
+  setupShop();
+  setupBackup();
 
   $("listenBtn").onclick = () => session.current?.listen();
   $("picBtn").onclick = () => {
@@ -345,6 +392,7 @@ function init() {
   $("micBtn").onclick = () => ReadGame.toggleMic();
   $("manualOk").onclick = () => ReadGame.manualOk();
   $("manualRetry").onclick = () => ReadGame.manualRetry();
+  $("recBtn").onclick = () => ReadGame.recordSelf();
   $("skipWordBtn").onclick = () => ReadGame.skip();
   $("skipBuildBtn").onclick = () => BuildGame.skip();
   $("skipSpellBtn").onclick = () => SpellGame.skip();
@@ -353,7 +401,7 @@ function init() {
 
   // Teclado: números para elegir, espacio para escuchar, Enter para el micro
   document.addEventListener("keydown", e => {
-    if (!session.current || document.querySelector("dialog[open]")) return;
+    if (!session.current || session.rewardActive || document.querySelector("dialog[open]")) return;
     if (e.target instanceof HTMLInputElement) return;
     if (e.key === " " && !(e.target instanceof HTMLButtonElement)) {
       e.preventDefault();

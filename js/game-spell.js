@@ -87,8 +87,7 @@ const SpellGame = {
       play("sndWrong", .5);
       mascotReact("sad");
       say(this.filled === 0 ? "¿Con qué letra empieza? 🤔" : "Esa no va ahora. ¡Escucha! 👂", "bad");
-      session.streak = 0;
-      renderHud();
+      noteFail();
       later(() => this.listen(), 400);
       // Si cuesta, la letra que toca se pone a saltar
       if (this.mistakes >= 2) {

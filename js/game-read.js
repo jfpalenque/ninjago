@@ -15,14 +15,18 @@ const ReadGame = {
   attempts: 0,
   rec: null,
   micBroken: !SpeechRec,
+  // Grabarse y escucharse: funciona sin internet y en cualquier navegador con micrófono
+  canRecord: !!(navigator.mediaDevices?.getUserMedia && window.MediaRecorder),
+  recorder: null,
 
   enter() {
     this.deck.reset();
     if (this.micBroken) this.showManual(this.noMicReason());
+    $("recBtn").hidden = !this.canRecord;
     this.next();
   },
 
-  leave() { this.stopListening(); },
+  leave() { this.stopListening(); this.stopRecording(); },
 
   listen() {
     if (this.word) speak(this.word.word, { rate: Math.min(settings.rate, .8) });
@@ -43,6 +47,8 @@ const ReadGame = {
 
   next() {
     this.stopListening();
+    this.stopRecording();
+    if (!this.micBroken) $("manualCheck").hidden = true;     // lo había abierto «Grábate»
     this.word = this.deck.next();
     this.attempts = 0;
     showWordPic($("readEmoji"), this.word);
@@ -137,6 +143,71 @@ const ReadGame = {
     $("micLabel").textContent = on ? "Te escucho..." : "¡Leer!";
   },
 
+  /* ---------- grabarse y escucharse ---------- */
+  async recordSelf() {
+    if (session.locked) return;
+    if (this.recorder) return this.recorder.stop();          // segundo toque: ya he terminado
+    this.stopListening();
+    speechSynthesis?.cancel();
+    const token = session.token, word = this.word;
+    let stream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch {
+      say("No tengo permiso para usar el micrófono 🎤", "bad");
+      return;
+    }
+    const stopTracks = () => stream.getTracks().forEach(t => t.stop());
+    if (token !== session.token || word !== this.word) return stopTracks();
+
+    const rec = new MediaRecorder(stream), chunks = [];
+    this.recorder = rec;
+    rec.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+    rec.onstop = () => {
+      clearTimeout(this.recStop);
+      stopTracks();
+      const cancelled = this.recorder !== rec;
+      if (!cancelled) this.recorder = null;
+      this.setRecUI(false);
+      if (cancelled || token !== session.token || word !== this.word || !chunks.length) return;
+      const url = URL.createObjectURL(new Blob(chunks, { type: rec.mimeType }));
+      const audio = new Audio(url);
+      let finished = false;
+      const after = () => {
+        if (finished) return;
+        finished = true;
+        URL.revokeObjectURL(url);
+        if (token !== session.token || word !== this.word) return;
+        say("…y así se dice. ¿Lo has leído bien? 🤔");
+        speak(word.word).then(() => {
+          if (token !== session.token || word !== this.word || session.locked) return;
+          $("manualMsg").textContent = "¿Ha sonado igual? Si lo ha leído bien, pulsa el botón verde:";
+          $("manualCheck").hidden = false;
+        });
+      };
+      audio.onended = audio.onerror = after;
+      say("Así lo has leído tú… 👂");
+      audio.play().catch(after);
+    };
+    rec.start();
+    this.setRecUI(true);
+    say("¡Lee ahora! Te estoy grabando ⏺️");
+    this.recStop = setTimeout(() => { if (rec.state === "recording") rec.stop(); }, 4000);
+  },
+
+  stopRecording() {
+    clearTimeout(this.recStop);
+    const r = this.recorder;
+    this.recorder = null;                                    // así onstop sabe que se ha cancelado
+    if (r && r.state === "recording") { try { r.stop(); } catch { /* ya parado */ } }
+    this.setRecUI(false);
+  },
+
+  setRecUI(on) {
+    $("recBtn").classList.toggle("on", on);
+    $("recBtn").textContent = on ? "⏹️ ¡Ya está!" : "⏺️ Grábate y escúchate";
+  },
+
   /* ---------- comprobación ---------- */
   check(alternatives) {
     const { ok, heard } = matchSpoken(this.word.word, alternatives);
@@ -174,6 +245,7 @@ const ReadGame = {
   manualOk() {
     if (session.locked) return;
     this.stopListening();
+    this.stopRecording();
     this.success();
   },
 
@@ -183,8 +255,7 @@ const ReadGame = {
     trackWord(this.word.word, false);
     restartAnim($("readCard"), "bad");
     say("¡Otra vez! Tú puedes 💪", "bad");
-    session.streak = 0;
-    renderHud();
+    noteFail();
     if (this.attempts >= 2) later(() => this.listen(), 500);
   },
 
