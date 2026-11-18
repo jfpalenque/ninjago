@@ -35,7 +35,7 @@ function renderProgressScreen() {
     ["⏱️", fmtTime(dayRec().sec || 0), "jugado hoy"],
     ["⌛", fmtTime(totalSec), "jugado en total"],
     ["🎁", `${owned}/${PRIZE_COUNT}`, "premios"],
-    [`<i class="beltDot" style="background:${beltBg(belt)}"></i>`, belt.name, "cinturón"],
+    [`<i class="beltDot" style="background:${beltBg(belt)}"></i>`, rankShort(), THEME.stages ? "nivel" : "cinturón"],
     ["🏅", `${MEDALS.filter(m => medals.includes(m.id)).length}/${MEDALS.length}`, "medallas"],
   ];
   $("statCards").innerHTML = cards.map(([ico, val, label]) =>

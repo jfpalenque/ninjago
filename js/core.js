@@ -4,19 +4,20 @@
    ========================================================= */
 "use strict";
 
-const APP_VERSION = "4.0.0";
+const APP_VERSION = "4.1.0";
 
 // premio25.png es idéntico a premio18.png y premio19.png no existe
 const DUPLICATE_PRIZES = { "img/premios/premio25.png": "img/premios/premio18.png" };
 const MISSING_PRIZES = [19];
-const PRIZES = Array.from({ length: 32 }, (_, i) => i + 1)
+const NINJA_PRIZES = Array.from({ length: 32 }, (_, i) => i + 1)
   .filter(n => !MISSING_PRIZES.includes(n))
   .map(n => `img/premios/premio${n}.png`)
   .filter(p => !DUPLICATE_PRIZES[p]);
 
-/* Pegatinas ninja: premios dibujados por la propia app (no necesitan imagen).
-   Se guardan como "sticker:<id>" en el mismo registro que los demás premios. */
-const STICKERS = [
+/* Pegatinas: premios dibujados por la propia app (no necesitan imagen).
+   Se guardan como "sticker:<id>" en el mismo registro que los demás premios.
+   Estas son las del tema Ninja; las de los otros temas están en themes.js. */
+const NINJA_STICKERS = [
   ["dragon", "🐉", "Dragón de fuego", "#ff7043"], ["katanas", "⚔️", "Katanas cruzadas", "#90a4ae"],
   ["templo", "🏯", "Templo ninja", "#ef5350"], ["kimono", "🥋", "Kimono", "#42a5f5"],
   ["ninja", "🥷", "Ninja sigiloso", "#5c6bc0"], ["panda", "🐼", "Panda guerrero", "#66bb6a"],
@@ -36,9 +37,6 @@ const STICKERS = [
   ["cohete", "🚀", "Cohete", "#5c6bc0"], ["unicornio", "🦄", "Unicornio", "#ce93d8"],
   ["dino", "🦖", "Dinosaurio", "#66bb6a"], ["robot", "🤖", "Robot", "#90a4ae"],
 ];
-const STICKER_INFO = Object.fromEntries(STICKERS.map(([id, emoji, name, color]) => ["sticker:" + id, { emoji, name, color }]));
-PRIZES.push(...Object.keys(STICKER_INFO));
-const PRIZE_COUNT = PRIZES.length;
 
 const prizeName = p => STICKER_INFO[p]?.name || "";
 function prizeHTML(p) {
@@ -82,7 +80,7 @@ const NINJA_COLORS = {
   pink:   ["#ec4f9c", "#a3216a"],
 };
 
-const PRAISE = ["¡Muy bien!", "¡Genial!", "¡Eres un crack!", "¡Bravo, ninja!", "¡Perfecto!", "¡Súper!", "¡Así se hace!", "¡Increíble!"];
+const PRAISE_BASE = ["¡Muy bien!", "¡Genial!", "¡Eres un crack!", "¡Bravo, {who}!", "¡Perfecto!", "¡Súper!", "¡Así se hace!", "¡Increíble!"];
 const ENCOURAGE = ["¡Casi! Prueba otra vez", "¡Tú puedes!", "¡Inténtalo de nuevo!", "¡Venga, otra vez!"];
 
 /* ---------------------------------------------------------
@@ -152,6 +150,7 @@ const DEFAULT_SETTINGS = {
   voice: "", pitch: 1.1,
   // repaso de lo que cuesta, dificultad automática, tipo de letra y disfraz del ninja
   smartReview: true, autoLevel: true, font: "normal",
+  theme: "ninja", creature: "fuego",
   outfit: { hat: "", glasses: "", pet: "" },
 };
 
@@ -173,6 +172,18 @@ function loadSettings() {
 }
 
 const settings = loadSettings();
+
+/* ---------------------------------------------------------
+   Tema del jugador (ver themes.js). Cambiar de tema recarga la página.
+   El nivel (cinturón) cuenta los premios de todos los álbumes, así
+   que no se pierde nada al cambiar.
+   --------------------------------------------------------- */
+const THEME = THEME_DEFS[settings.theme] || THEME_DEFS.ninja;
+const PRAISE = PRAISE_BASE.map(t => t.replace("{who}", THEME.who));
+const STICKERS = THEME.stickers || NINJA_STICKERS;
+const STICKER_INFO = Object.fromEntries(STICKERS.map(([id, emoji, name, color]) => ["sticker:" + id, { emoji, name, color }]));
+const PRIZES = [...(THEME.images ? NINJA_PRIZES : []), ...Object.keys(STICKER_INFO)];
+const PRIZE_COUNT = PRIZES.length;
 
 let unlocked = load("unlockedRewards", {});   // { ruta: cantidad } — mismo formato que la v1
 for (const [dup, orig] of Object.entries(DUPLICATE_PRIZES)) {
@@ -449,6 +460,7 @@ const GLASSES_SVG = {
 
 /** El ninja con lo que lleve puesto (`outfit` permite probar otro disfraz en la tienda). */
 function mascotSVG(outfit = settings.outfit) {
+  if (THEME.mascot) return THEME.mascot(outfit, mascotStage());
   const pet = SHOP_ITEMS.find(i => i.type === "pet" && i.id === outfit.pet);
   return `
   <svg viewBox="0 0 200 230" role="img" aria-label="Ninja">
@@ -527,7 +539,9 @@ function say(text, mood = "") {
 }
 
 function applyNinjaColor() {
-  const [main, dark] = NINJA_COLORS[settings.color] || NINJA_COLORS.red;
+  const [main, dark] = THEME.id === "criaturas"
+    ? (CREATURE_TYPES[settings.creature] || CREATURE_TYPES.fuego).colors
+    : NINJA_COLORS[settings.color] || NINJA_COLORS.red;
   document.documentElement.style.setProperty("--ninja", main);
   document.documentElement.style.setProperty("--ninja-dark", dark);
 }
@@ -538,11 +552,22 @@ function applyNinjaColor() {
 const totalPrizes = () => Object.values(unlocked).reduce((a, b) => a + b, 0);
 const beltIndex = (n = totalPrizes()) => BELTS.reduce((acc, b, i) => (n >= b.min ? i : acc), 0);
 
+/* En el tema Ninja el nivel es un cinturón; en los demás, un número, y la mascota crece por etapas */
+const mascotStage = (bi = beltIndex()) => (THEME.stages ? THEME.stages.reduce((acc, min, i) => (bi >= min ? i : acc), 0) : 0);
+const rankShort = (i = beltIndex()) => (THEME.stages ? `Nivel ${i + 1}` : BELTS[i].name);
+const rankName = (i = beltIndex()) => (THEME.stages ? `Nivel ${i + 1} · ${THEME.stageNames[mascotStage(i)]}` : `Cinturón ${BELTS[i].name}`);
+let shownStage = -1;
+
 function updateBelt() {
   const belt = BELTS[beltIndex()];
   document.documentElement.style.setProperty("--belt", belt.color);
-  $("beltBadge").innerHTML = `<i style="background:${beltBg(belt)}"></i><span>${belt.name}</span>`;
-  $("startBelt").textContent = `Cinturón ${belt.name} · ⭐ ${coins()}`;
+  $("beltBadge").innerHTML = `<i style="background:${beltBg(belt)}"></i><span>${rankShort()}</span>`;
+  $("startBelt").textContent = `${rankName()} · ⭐ ${coins()}`;
+  if (shownStage !== mascotStage()) {          // ha crecido: se vuelve a dibujar
+    const first = shownStage < 0;
+    shownStage = mascotStage();
+    if (!first) renderMascots();
+  }
   const owned = PRIZES.filter(p => unlocked[p]).length;
   $("menuPrizes").textContent = `${owned} de ${PRIZE_COUNT}`;
 }
@@ -602,7 +627,7 @@ function buildSky() {
   for (let i = 0; i < 10; i++) {
     const p = document.createElement("span");
     p.className = "petal";
-    p.textContent = pick(["🌸", "🌸", "🍃"]);
+    p.textContent = pick(THEME.petals);
     p.style.left = rand(0, 100) + "%";
     const dur = rand(12, 22);
     p.style.setProperty("--dur", dur + "s");
@@ -788,7 +813,11 @@ function startReward({ mission = false } = {}) {
     confetti();
     const name = prizeName(prize);
     let text = (isNew ? "¡Premio nuevo!" : "¡Otro premio!") + (name ? ` ${name}` : "");
-    if (beltAfter > beltBefore) text = `¡Ahora eres cinturón ${BELTS[beltAfter].name}! 🥋`;
+    if (beltAfter > beltBefore) {
+      text = THEME.rankUp
+        ? THEME.rankUp(beltAfter + 1, mascotStage(beltAfter) > mascotStage(beltBefore), mascotStage(beltAfter))
+        : `¡Ahora eres cinturón ${BELTS[beltAfter].name}! 🥋`;
+    }
     else if (mission) text = `¡Misión del día cumplida! +${MISSION_BONUS} ⭐`;
     updateBelt();
     $("rewardText").textContent = text;
@@ -892,8 +921,8 @@ function renderAlbum() {
   const total = totalPrizes();
   const next = BELTS[bi + 1];
   $("beltPath").innerHTML =
-    BELTS.map((b, i) => `<span class="beltStep ${i <= bi ? "done" : ""} ${i === bi ? "current" : ""}" style="background:${beltBg(b)}" title="Cinturón ${b.name} (${b.min} premios)"></span>`).join("") +
-    `<span class="beltNext">Cinturón ${BELTS[bi].name}. ${next ? `Faltan ${next.min - total} premios para el ${next.name}` : "¡Eres un gran maestro ninja!"}</span>`;
+    BELTS.map((b, i) => `<span class="beltStep ${i <= bi ? "done" : ""} ${i === bi ? "current" : ""}" style="background:${beltBg(b)}" title="${esc(rankName(i))} (${b.min} premios)"></span>`).join("") +
+    `<span class="beltNext">${esc(rankName(bi))}. ${next ? `Faltan ${next.min - total} premios para el ${THEME.stages ? "nivel " + (bi + 2) : next.name}` : `¡Eres un gran maestro ${THEME.who}!`}</span>`;
 
   $("albumGrid").innerHTML = PRIZES.map(p => {
     const n = unlocked[p] || 0;

@@ -264,13 +264,14 @@ function setupSettings() {
   bindCheck("optNumPics", "numPics", () => restartGameIfPlaying("numeros"));
   bindCheck("optSmart", "smartReview", resetDecks);
   bindCheck("optAuto", "autoLevel");
+  setupSegmented("themeSeg", "theme", v => v, () => location.reload());
   setupSegmented("fontSeg", "font", v => v, () => { applyFont(); restartGameIfPlaying("trazar"); });
   $("optLock").checked = profiles.lock;
   $("optLock").onchange = () => { profiles.lock = $("optLock").checked; saveProfiles(); };
 
   const rate = $("optRate");
   rate.value = settings.rate;
-  rate.onchange = () => { settings.rate = Number(rate.value); saveSettings(); speak("Hola, ninja"); };
+  rate.onchange = () => { settings.rate = Number(rate.value); saveSettings(); speak(`Hola, ${THEME.who}`); };
 
   setupVoice();
   setupCustomWords();
@@ -296,7 +297,7 @@ function renderVoices() {
 
 function testVoice() {
   // «to» suelta es la sílaba que algunas voces leen mal
-  speak("to").then(() => speak("Tomate. Pato. ¡Hola, ninja!"));
+  speak("to").then(() => speak(`Tomate. Pato. ¡Hola, ${THEME.who}!`));
 }
 
 function setupVoice() {
@@ -309,6 +310,19 @@ function setupVoice() {
   };
   setupSegmented("pitchSeg", "pitch", Number, testVoice);
   $("voiceTestBtn").onclick = testVoice;
+}
+
+/* ---------------------------------------------------------
+   Tema: textos y fondo (los colores y dibujos van por CSS con body[data-theme])
+   --------------------------------------------------------- */
+function applyTheme() {
+  document.body.dataset.theme = THEME.id;
+  $("appTitle").innerHTML = `${esc(THEME.title[0])} <span>${esc(THEME.title[1])}</span>`;
+  $("giftBox").textContent = THEME.gift;
+  $("shopTitle").textContent = `👕 Mi ${THEME.who}`;
+  $("calTitle").textContent = `📅 Mis días de ${THEME.who}`;
+  $("mapTitle").textContent = `🗺️ ${THEME.map.title}`;
+  document.querySelector("[data-open-shop]").setAttribute("aria-label", `Vestir a mi ${THEME.who}`);
 }
 
 /* ---------------------------------------------------------
@@ -362,6 +376,7 @@ function setupDialogs() {
    Arranque
    --------------------------------------------------------- */
 function init() {
+  applyTheme();
   applyNinjaColor();
   applyFont();
   buildSky();

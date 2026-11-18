@@ -13,7 +13,7 @@ const MAP_ORDER = [
 ];
 const MAP_STARS = [5, 15, 30];
 const MAP_STEP = 118;       // píxeles entre paradas
-const MAP_DECOR = ["🌸", "🎋", "🪨", "⛩️", "🌳", "🏮", "🍄", "🌷", "🦋", "🎍"];
+const MAP_DECOR = THEME.map.decor;
 
 const mapStars = route => MAP_STARS.filter(n => (stats[gameInfo(route).stat] || 0) >= n).length;
 
@@ -63,7 +63,7 @@ function renderMap() {
   box.innerHTML = `
     <svg viewBox="0 0 100 ${H}" preserveAspectRatio="none" aria-hidden="true"><path d="${d}"/></svg>
     ${decor}
-    <span class="mapTemple ${open ? "open" : ""}" style="left:${temple.x}%;top:${temple.y}px">🏯<b>${open ? "¡Maestro ninja!" : "Templo"}</b></span>
+    <span class="mapTemple ${open ? "open" : ""}" style="left:${temple.x}%;top:${temple.y}px">${THEME.map.goal}<b>${open ? THEME.map.goalDone : THEME.map.goalName}</b></span>
     ${nodes.join("")}
     <span id="mapMe" class="mascotHolder mapMe" style="left:${me.x}%;top:${me.y}px">${mascotSVG()}</span>`;
 

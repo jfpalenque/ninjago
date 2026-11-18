@@ -51,7 +51,7 @@ const PairsGame = {
       b.className = "memCard up " + card.kind;
       b.style.setProperty("--i", i);
       b.setAttribute("aria-label", "Carta " + (i + 1));
-      b.innerHTML = `<span class="memInner"><span class="memBack">🥷</span><span class="memFront">${
+      b.innerHTML = `<span class="memInner"><span class="memBack">${THEME.cardBack}</span><span class="memFront">${
         card.kind === "word" ? esc(show(card.w.word)) : card.w.emoji}</span></span>`;
       b.addEventListener("click", () => this.flip(card, b));
       box.appendChild(b);

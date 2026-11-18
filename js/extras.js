@@ -116,7 +116,7 @@ function setupProfiles() {
   $("profileRenameBtn").onclick = async () => {
     if (!(await parentGate())) return;
     const p = currentProfile();
-    const name = (prompt("Nombre del ninja:", p.name) || "").trim().slice(0, 14);
+    const name = (prompt("Nombre del jugador:", p.name) || "").trim().slice(0, 14);
     if (!name) return;
     p.name = name;
     saveProfiles();
@@ -166,6 +166,15 @@ function renderCalendar() {
 function renderShop() {
   $("shopCoins").textContent = `⭐ ${coins()} para gastar`;
   $("shopPreview").innerHTML = mascotSVG();
+  $("themePick").innerHTML = Object.values(THEME_DEFS).map(t =>
+    `<button class="${t.id === THEME.id ? "active" : ""}" data-theme-id="${t.id}"><span>${t.ico}</span>${t.name}</button>`).join("");
+  // Las criaturas no cambian de color: se elige su tipo
+  const isCreature = THEME.id === "criaturas";
+  $("colorPicker").hidden = isCreature;
+  $("creaturePick").hidden = !isCreature;
+  $("lookTitle").textContent = isCreature ? "Tipo" : "Color";
+  $("creaturePick").innerHTML = Object.entries(CREATURE_TYPES).map(([id, t]) =>
+    `<button class="${settings.creature === id ? "active" : ""}" data-creature="${id}" style="--c:${t.colors[0]}" aria-label="${t.name}">${t.ico}</button>`).join("");
   $("shopGrid").innerHTML = Object.entries(SHOP_TYPES).map(([type, title]) =>
     `<h3>${title}</h3><div class="shopRow">` + SHOP_ITEMS.filter(i => i.type === type).map(i => {
       const owned = shop.owned.includes(i.id), on = settings.outfit[type] === i.id;
@@ -177,6 +186,33 @@ function renderShop() {
 }
 
 function setupShop() {
+  $("themePick").addEventListener("click", e => {
+    const b = e.target.closest("[data-theme-id]");
+    if (!b || b.dataset.themeId === THEME.id) return;
+    settings.theme = b.dataset.themeId;
+    saveSettings();
+    try { sessionStorage.setItem("dojoReopenShop", "1"); } catch { /* sin acceso */ }
+    location.hash = "#menu";
+    location.reload();       // el tema se aplica al arrancar
+  });
+  $("creaturePick").addEventListener("click", e => {
+    const b = e.target.closest("[data-creature]");
+    if (!b) return;
+    settings.creature = b.dataset.creature;
+    saveSettings();
+    applyNinjaColor();
+    renderMascots();
+    renderShop();
+    mascotReact("happy");
+    play("sndPop", .5);
+  });
+  // tras cambiar de tema se vuelve a abrir «Mi …» para ver cómo queda
+  try {
+    if (sessionStorage.getItem("dojoReopenShop")) {
+      sessionStorage.removeItem("dojoReopenShop");
+      setTimeout(() => { renderShop(); $("shopDialog").showModal(); }, 400);
+    }
+  } catch { /* sin acceso */ }
   $("shopGrid").addEventListener("click", e => {
     const b = e.target.closest("[data-item]");
     if (!b) return;

@@ -1747,3 +1747,70 @@ a.mapNode:active { transform: translate(-50%, -50%) scale(.94); }
 .avatarPick button { min-width: 0; font-size: clamp(1rem, 5vw, 1.4rem); }
 .coin.n5, .coin.n10 { display: flex; align-items: baseline; justify-content: center; align-content: normal; padding-top: .28em; }
 .clock { width: min(30vh, 60vw, 250px); }
+
+/* =========================================================
+   TEMAS (body[data-theme]): fondo, puertas y mascota
+   ========================================================= */
+.scene { display: none; }
+.ninja .tail { transform-box: fill-box; transform-origin: 0% 100%; animation: tails 1.2s ease-in-out infinite alternate; }
+.door .behind b { font-size: clamp(2.6rem, 9vw, 4.6rem); line-height: 1; font-weight: normal; animation: idle 2s ease-in-out infinite; }
+
+/* --- Criaturas: una isla de día --- */
+body[data-theme="criaturas"] { background: #0a3d7a; --wood: #2e7d32; --wood-dark: #1b5e20; --paper: #fffdf0; }
+body[data-theme="criaturas"] #sky { background: linear-gradient(180deg, #0a3d7a 0%, #1273b8 45%, #2aa88a 78%, #9be26a 100%); }
+body[data-theme="criaturas"] #stars { opacity: .25; }
+body[data-theme="criaturas"] #moon { background: radial-gradient(circle at 40% 40%, #fffde0, #ffe14d 60%, #ffb300); box-shadow: 0 0 60px 22px rgba(255, 225, 90, .55); }
+body[data-theme="criaturas"] #moon::before, body[data-theme="criaturas"] #moon::after { display: none; }
+body[data-theme="criaturas"] .cloud { background: rgba(255, 255, 255, .5); }
+body[data-theme="criaturas"] .mount.far { fill: #1f8a5b; }
+body[data-theme="criaturas"] .mount.near { fill: #116b43; }
+body[data-theme="criaturas"] .pagoda { display: none; }
+body[data-theme="criaturas"] .scene.trees { display: block; fill: #0b4f31; }
+body[data-theme="criaturas"] .door .panel {
+  background: radial-gradient(circle at 30% 25%, #a5e06a 0 14%, transparent 15%), radial-gradient(circle at 70% 60%, #a5e06a 0 12%, transparent 13%),
+    radial-gradient(circle at 35% 82%, #7ccf52 0 12%, transparent 13%), linear-gradient(160deg, #5dbb46, #2e8b3a);
+}
+body[data-theme="criaturas"] .door .behind { background: radial-gradient(circle, #fffde0, #c9f29b 60%, #7ccf52); }
+body[data-theme="criaturas"] .memBack { background: repeating-linear-gradient(45deg, #2aa88a 0 12px, #1f8a70 12px 24px); }
+body[data-theme="criaturas"] .mapPath > svg path { stroke: #fff8d6; }
+
+/* --- Dinosaurios: un valle con volcán al atardecer --- */
+body[data-theme="dinos"] { background: #14342b; --wood: #6d4c41; --wood-dark: #3e2723; --paper: #fff6e0; }
+body[data-theme="dinos"] #sky { background: linear-gradient(180deg, #14342b 0%, #1f6b4a 48%, #c9822b 82%, #ffcf5c 100%); }
+body[data-theme="dinos"] #stars { opacity: .5; }
+body[data-theme="dinos"] #moon { background: radial-gradient(circle at 40% 40%, #fff3d0, #ffb74d 60%, #f4511e); box-shadow: 0 0 50px 16px rgba(255, 150, 60, .5); }
+body[data-theme="dinos"] .mount.far { fill: #2f5b3a; }
+body[data-theme="dinos"] .mount.near { fill: #173a27; }
+body[data-theme="dinos"] .pagoda { display: none; }
+body[data-theme="dinos"] .scene.volcano { display: block; fill: #0f2a1c; }
+body[data-theme="dinos"] .volcano .lava { fill: #ff7b1c; animation: windowGlow 2s ease-in-out infinite alternate; }
+body[data-theme="dinos"] .volcano .smoke { fill: rgba(255, 255, 255, .22); }
+body[data-theme="dinos"] .door { border-radius: 46% 46% 10px 10px / 30% 30% 6px 6px; }
+body[data-theme="dinos"] .door .panel {
+  background: radial-gradient(circle at 28% 22%, rgba(255, 255, 255, .25) 0 9%, transparent 10%), radial-gradient(circle at 66% 58%, rgba(0, 0, 0, .14) 0 10%, transparent 11%),
+    radial-gradient(circle at 34% 80%, rgba(0, 0, 0, .12) 0 8%, transparent 9%), linear-gradient(160deg, #b9a48c, #7d6957);
+}
+body[data-theme="dinos"] .door .behind { background: radial-gradient(circle, #fff6d6, #ffcf7a 60%, #f08a2e); }
+body[data-theme="dinos"] .memBack { background: repeating-linear-gradient(45deg, #8d6e63 0 12px, #6d4c41 12px 24px); }
+body[data-theme="dinos"] .mapPage .pageHead { background: rgba(20, 52, 43, .88); }
+body[data-theme="criaturas"] .mapPage .pageHead { background: rgba(10, 61, 122, .88); }
+
+/* selector de tema y de tipo de criatura en «Mi …» */
+.themePick { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 8px 0 10px; }
+.themePick button {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 6px 2px;
+  border: 3px solid #d9cdee; border-radius: 16px;
+  background: #fff; color: var(--ink);
+  font-size: .9rem; font-weight: bold;
+}
+.themePick button span { font-size: 1.9rem; line-height: 1.15; }
+.themePick button.active { border-color: #7b4dff; background: #e6dcff; }
+.creaturePick { display: flex; gap: 10px; }
+.creaturePick button {
+  width: 56px; height: 56px; border-radius: 50%;
+  border: 3px solid #fff; background: var(--c);
+  font-size: 1.7rem; box-shadow: 0 0 0 2px rgba(255, 255, 255, .35);
+}
+.creaturePick button.active { box-shadow: 0 0 0 4px var(--gold); transform: scale(1.1); }
+@media (prefers-reduced-motion: reduce) { .ninja .tail, .door .behind b, .volcano .lava { animation: none !important; } }

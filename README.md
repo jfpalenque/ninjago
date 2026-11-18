@@ -3,6 +3,18 @@
 Juego web para que los niños aprendan a leer, a escribir y a contar, con premios, cinturones y un ninja que los anima.
 Funciona sin conexión y se puede instalar en el móvil o la tablet (PWA).
 
+## Temas
+
+Cada jugador elige su tema tocando a la mascota del menú (o en Ajustes → Tema). Los juegos, el nivel y el progreso son los mismos; cambian la mascota, el fondo, las puertas, el mapa y el álbum de pegatinas.
+
+| Tema | Mascota | Álbum |
+|---|---|---|
+| 🥷 **Ninja** | El ninja, con sus 18 cinturones. | 30 láminas y 36 pegatinas ninja. |
+| 🐣 **Criaturas** | Una criatura de fuego, agua o planta que sale de un huevo y evoluciona (cría en el nivel 2, joven en el 5 y adulta en el 11). | 42 criaturas de seis tipos. |
+| 🦖 **Dinosaurios** | Un dino del color que se elija, que sale del huevo y crece en los mismos niveles. | 42 pegatinas de dinosaurios, fósiles y exploradores. |
+
+Para añadir otro tema basta una entrada nueva en `THEME_DEFS` (`js/themes.js`) y sus colores en `css/index.css` (`body[data-theme="…"]`).
+
 ## Juegos
 
 | Pantalla | Qué se hace |
@@ -70,6 +82,7 @@ Si no está disponible, aparecen los botones «✅ ¡Bien leído!» y «🔁 Otr
 ```
 index.html            pantallas y diálogos
 css/index.css         estilos y animaciones
+js/themes.js          temas: mascotas, pegatinas y textos de Ninja, Criaturas y Dinosaurios
 js/core.js            datos guardados, voz, mascota, efectos, puntuación, premios, cinturones y medallas
 js/words.js           lista de palabras, separación en sílabas y comparación de lo leído
 js/game-syllables.js  juego de sílabas

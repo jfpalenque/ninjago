@@ -75,6 +75,7 @@ const SyllableGame = {
     box.hidden = false;
     box.innerHTML = "";
     const imgs = shuffle(DOOR_IMAGES);
+    const behind = shuffle(THEME.doors || []);     // en los otros temas asoma una criatura o un dino
 
     this.options.forEach((syl, i) => {
       const d = document.createElement("button");
@@ -84,7 +85,7 @@ const SyllableGame = {
       d.style.setProperty("--frame", FRAME_COLORS[i % FRAME_COLORS.length]);
       d.setAttribute("aria-label", "Puerta " + (i + 1) + ": " + show(syl));
       d.innerHTML = `
-        <span class="behind"><img src="${imgs[i % imgs.length]}" alt="" draggable="false"></span>
+        <span class="behind">${THEME.doors ? `<b>${behind[i % behind.length]}</b>` : `<img src="${imgs[i % imgs.length]}" alt="" draggable="false">`}</span>
         <span class="panel l"></span><span class="panel r"></span>
         <span class="plaque">${show(syl)}</span>`;
       d.addEventListener("click", () => this.answer(syl, d));

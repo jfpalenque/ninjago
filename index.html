@@ -35,6 +35,17 @@
       <rect x="68" y="-15" width="4" height="20"/>
       <rect class="win" x="62" y="95" width="16" height="22" rx="3"/>
     </g>
+    <!-- Criaturas: árboles redondos · Dinosaurios: volcán con humo -->
+    <g class="scene trees" transform="translate(900 96)">
+      <rect x="54" y="60" width="14" height="60"/><circle cx="60" cy="40" r="42"/>
+      <rect x="150" y="80" width="12" height="44"/><circle cx="156" cy="62" r="30"/>
+      <rect x="-30" y="90" width="10" height="36"/><circle cx="-25" cy="74" r="24"/>
+    </g>
+    <g class="scene volcano" transform="translate(860 30)">
+      <path d="M0 190 L92 30 L104 42 L118 28 L132 44 L146 30 L240 190Z"/>
+      <path class="lava" d="M92 30 L104 42 L118 28 L132 44 L146 30 L138 64 L126 50 L116 70 L106 52 L98 62Z"/>
+      <circle class="smoke" cx="118" cy="6" r="14"/><circle class="smoke" cx="136" cy="-16" r="18"/><circle class="smoke" cx="110" cy="-34" r="12"/>
+    </g>
   </svg>
 </div>
 
@@ -42,9 +53,9 @@
 <section id="menuScreen" class="screen" data-screen="menu">
   <button class="hudBtn cornerBtn" data-open-settings aria-label="Ajustes para mayores" title="Ajustes para mayores">⚙️</button>
   <button id="profileBtn" class="profileBtn" aria-label="Cambiar de jugador" title="¿Quién juega?"></button>
-  <h1 class="title">Dojo <span>Ninja</span></h1>
+  <h1 id="appTitle" class="title">Dojo <span>Ninja</span></h1>
   <div class="menuHero">
-    <button class="heroMascot" data-open-shop aria-label="Vestir a mi ninja" title="Vestir a mi ninja">
+    <button class="heroMascot" data-open-shop aria-label="Vestir a mi ninja" title="Vestir y elegir tema">
       <span id="startMascot" class="mascotHolder big"></span>
       <span class="heroTag">👕 Vísteme</span>
     </button>
@@ -277,7 +288,7 @@
 <section id="mapScreen" class="page mapPage" data-screen="mapa" hidden>
   <header class="pageHead">
     <a href="#menu" class="hudBtn" aria-label="Volver al menú">🏠</a>
-    <h2>🗺️ Camino al templo</h2>
+    <h2 id="mapTitle">🗺️ Camino al templo</h2>
     <span id="mapTotal" class="mapTotal"></span>
   </header>
   <div id="mapPath" class="mapPath"></div>
@@ -316,15 +327,15 @@
 <dialog id="profileDialog" class="dialog">
   <button class="closeX" data-close aria-label="Cerrar">✕</button>
   <h2>👋 ¿Quién juega?</h2>
-  <p class="muted">Cada ninja tiene sus premios, su progreso y sus ajustes.</p>
+  <p class="muted">Cada jugador tiene su tema, sus premios, su progreso y sus ajustes.</p>
   <div id="profileList" class="profileList"></div>
   <form id="profileForm" class="profileForm" autocomplete="off" hidden>
-    <input id="profileName" placeholder="Nombre" maxlength="14" aria-label="Nombre del ninja nuevo">
+    <input id="profileName" placeholder="Nombre" maxlength="14" aria-label="Nombre del jugador nuevo">
     <div id="avatarPick" class="avatarPick"></div>
     <button class="smallBtn primary" type="submit">Crear</button>
   </form>
   <div class="dialogActions">
-    <button id="profileAddBtn" class="smallBtn ok">➕ Añadir ninja</button>
+    <button id="profileAddBtn" class="smallBtn ok">➕ Añadir jugador</button>
     <button id="profileRenameBtn" class="smallBtn primary">✏️ Cambiar nombre</button>
   </div>
 </dialog>
@@ -332,13 +343,15 @@
 <!-- ============ MI NINJA (tienda) ============ -->
 <dialog id="shopDialog" class="dialog">
   <button class="closeX" data-close aria-label="Cerrar">✕</button>
-  <h2>👕 Mi ninja</h2>
+  <h2 id="shopTitle">👕 Mi ninja</h2>
+  <div id="themePick" class="themePick" aria-label="Tema"></div>
   <p id="shopCoins" class="albumCount" role="status"></p>
   <div class="shopTop">
     <div id="shopPreview" class="mascotHolder preview"></div>
     <div>
-      <div class="setTitle">Color</div>
+      <div id="lookTitle" class="setTitle">Color</div>
       <div id="colorPicker" class="colorPicker"></div>
+      <div id="creaturePick" class="creaturePick" hidden></div>
     </div>
   </div>
   <div id="shopGrid" class="shopGrid"></div>
@@ -348,7 +361,7 @@
 <!-- ============ CALENDARIO ============ -->
 <dialog id="calendarDialog" class="dialog">
   <button class="closeX" data-close aria-label="Cerrar">✕</button>
-  <h2>📅 Mis días de ninja</h2>
+  <h2 id="calTitle">📅 Mis días de ninja</h2>
   <div id="calGrid" class="calGrid"></div>
   <p id="calInfo" class="muted small"></p>
 </dialog>
@@ -462,6 +475,14 @@
   <h3 class="setSection">🎨 General</h3>
 
   <div class="setGroup">
+    <div class="setTitle">Tema</div>
+    <div class="segmented" id="themeSeg">
+      <button data-value="ninja">🥷 Ninja</button><button data-value="criaturas">🐣 Criaturas</button><button data-value="dinos">🦖 Dinos</button>
+    </div>
+    <p class="muted small">Cambia la mascota, el fondo y el álbum de pegatinas. También se elige tocando a la mascota del menú. El nivel y el progreso se conservan.</p>
+  </div>
+
+  <div class="setGroup">
     <div class="setTitle">Tipo de letra</div>
     <div class="segmented" id="fontSeg">
       <button data-value="normal">Normal</button><button data-value="escolar">Ligada</button><button data-value="legible">Lectura fácil</button>
@@ -520,6 +541,7 @@
 <audio id="sndBalloons" src="sound/balloons.mp3" preload="none"></audio>
 <audio id="sndPop" src="sound/pop.mp3" preload="auto"></audio>
 
+<script src="js/themes.js"></script>
 <script src="js/core.js"></script>
 <script src="js/words.js"></script>
 <script src="js/game-syllables.js"></script>
